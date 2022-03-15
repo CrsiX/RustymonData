@@ -1,1 +1,2 @@
 geojson==2.5.0
+osmread==0.2
