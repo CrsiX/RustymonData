@@ -1,3 +1,4 @@
+import enum
 import time
 import uuid as _uuid
 from typing import List, Tuple, Union
@@ -39,6 +40,94 @@ class _Base(dict):
             del self[name]
         except KeyError:
             raise AttributeError(name)
+
+
+class SpawnType(enum.IntEnum):
+    ANCIENT = enum.auto()
+    ARCTIC = enum.auto()
+    BEACH = enum.auto()
+    CAVE = enum.auto()
+    CEMETERY = enum.auto()
+    COMMERCIAL = enum.auto()
+    CONSTRUCTION_SITE = enum.auto()
+    CORAL_REEF = enum.auto()
+    DESERT = enum.auto()
+    DOCK = enum.auto()
+    FARMLAND = enum.auto()
+    FOREST = enum.auto()
+    GARBAGE = enum.auto()
+    GLACIER = enum.auto()
+    GRASS = enum.auto()
+    HEATH = enum.auto()
+    HILLS = enum.auto()
+    INDUSTRIAL = enum.auto()
+    LAKE = enum.auto()
+    LIBRARY = enum.auto()
+    MEDICAL = enum.auto()
+    MILITARY = enum.auto()
+    MEADOW = enum.auto()
+    MOUNTAIN = enum.auto()
+    MOUNTAIN_TOP = enum.auto()
+    NATURE_RESERVE = enum.auto()
+    OCEAN = enum.auto()
+    PARK = enum.auto()
+    PLAYA = enum.auto()
+    PLAYGROUND = enum.auto()
+    POWER = enum.auto()
+    QUARRY = enum.auto()
+    RESIDENTIAL = enum.auto()
+    RIVER = enum.auto()
+    SAVANNA = enum.auto()
+    SPORTS = enum.auto()
+    URBAN = enum.auto()
+    VULCAN = enum.auto()
+    WETLAND = enum.auto()
+    WOOD = enum.auto()
+
+
+class POIType(enum.IntEnum):
+    NONE = enum.auto()
+    POKE_CENTER = enum.auto()
+    PROFESSOR = enum.auto()
+    ARCHAEOLOGIST = enum.auto()
+    ATTACK_TUTOR = enum.auto()
+    BREEDING = enum.auto()
+    SAFARI = enum.auto()
+    DOJO = enum.auto()
+    SMITH = enum.auto()
+    STADIUM = enum.auto()
+    THEATRE = enum.auto()
+
+    SHOP = enum.auto()
+    SHOP_BALLS = enum.auto()
+    SHOP_BUILDING = enum.auto()
+    SHOP_BOOSTS = enum.auto()
+    SHOP_FOOD = enum.auto()
+    SHOP_FURNITURE = enum.auto()
+    SHOP_HEALS = enum.auto()
+    SHOP_LETTERS = enum.auto()
+    SHOP_TM = enum.auto()
+    SHOP_TOOLS = enum.auto()
+
+
+class StreetType(enum.IntEnum):
+    HIGHWAY = enum.auto()
+    STREET = enum.auto()
+    PATH = enum.auto()
+
+
+class AreaType(enum.IntEnum):
+    UNDEFINED = enum.auto()
+    SAND = enum.auto()
+    STONE = enum.auto()
+    WATER = enum.auto()
+    ICE = enum.auto()
+    FOREST = enum.auto()
+    FARMLAND = enum.auto()
+    MEADOW = enum.auto()
+    URBAN = enum.auto()
+    VULCAN = enum.auto()
+    MILITARY = enum.auto()
 
 
 class PointOfInterest(_Base):
