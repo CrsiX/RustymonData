@@ -135,16 +135,32 @@ class PointOfInterest(_Base):
     point: Tuple[float, float]
     spawns: List[Union[int, SpawnType]]
 
-    def __init__(self, type: Union[int, POIType], point: Tuple[float, float], spawns: List[Union[int, SpawnType]]):
-        super().__init__(type=int(type), point=(float(p) for p in point), spawns=[int(s) for s in spawns])
+    def __init__(
+            self,
+            type: Union[int, POIType],  # noqa
+            point: Tuple[float, float],
+            spawns: List[Union[int, SpawnType]]
+    ):
+        super().__init__(
+            type=int(type),
+            point=tuple(float(p) for p in point),
+            spawns=[int(s) for s in spawns]
+        )
 
 
 class Street(_Base):
     type: Union[int, StreetType]
     points: List[Tuple[float, float]]
 
-    def __init__(self, type: Union[int, StreetType], points: List[Tuple[float, float]]):
-        super().__init__(type=int(type), points=([float(c) for c in p] for p in points))
+    def __init__(
+            self,
+            type: Union[int, StreetType],  # noqa
+            points: List[Tuple[float, float]]
+    ):
+        super().__init__(
+            type=int(type),
+            points=[tuple(float(c) for c in p) for p in points]
+        )
 
 
 class Area(_Base):
@@ -154,13 +170,13 @@ class Area(_Base):
 
     def __init__(
             self,
-            type: Union[int, AreaType],
+            type: Union[int, AreaType],  # noqa
             points: List[Tuple[float, float]],
-        spawns: List[Union[int, SpawnType]]
+            spawns: List[Union[int, SpawnType]]
     ):
         super().__init__(
             type=int(type),
-            points=([float(c) for c in p] for p in points),
+            points=[tuple(float(c) for c in p) for p in points],
             spawns=[int(s) for s in spawns]
         )
 
@@ -177,7 +193,7 @@ class World(_Base):
     def __init__(self, bbox: Tuple[float, float, float, float], uuid: Union[None, str, _uuid.UUID] = None, **kwargs):
         super().__init__(
             uuid=(str(uuid) if isinstance(uuid, _uuid.UUID) else uuid and str(_uuid.UUID(uuid))) or str(_uuid.uuid4()),
-            bbox=bbox,
+            bbox=tuple(float(b) for b in bbox),
             timestamp=int(kwargs.get("timestamp", round(time.time()))),
             version=int(kwargs.get("version", __format_version__)),
             points=kwargs.get("points", []),
