@@ -114,6 +114,7 @@ class StreetType(enum.IntEnum):
     HIGHWAY = enum.auto()
     STREET = enum.auto()
     PATH = enum.auto()
+    RAILS = enum.auto()
 
 
 class AreaType(enum.IntEnum):
