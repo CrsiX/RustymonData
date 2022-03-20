@@ -2,7 +2,7 @@
 OUT_EXE = PokeWorldGenerator
 
 # Name of the input C++ file
-IN_CPP = PokeWorldGenerator.cpp
+IN_CPP = pokeworld/PokeWorldGenerator.cpp
 
 all: clean build run
 
