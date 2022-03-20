@@ -86,7 +86,7 @@ enum class POIType {
 };
 
 
-enum clsas StreetType {
+enum class StreetType {
     HIGHWAY,
     STREET,
     PATH,
