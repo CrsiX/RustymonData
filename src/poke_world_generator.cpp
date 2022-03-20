@@ -7,8 +7,8 @@
 #include <osmium/relations/relations_manager.hpp>
 #include <osmium/visitor.hpp>
 #include <osmium/geom/factory.hpp>
-#include "PokeWorldEnums.hpp"
-#include "PokeWorldFields.hpp"
+#include "poke_world_enums.hpp"
+#include "poke_world_fields.hpp"
 
 
 class CounterHandler : public osmium::handler::Handler {
