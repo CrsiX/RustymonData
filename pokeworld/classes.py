@@ -109,6 +109,25 @@ class POIType(enum.IntEnum):
     SHOP_TM = enum.auto()
     SHOP_TOOLS = enum.auto()
 
+    ARENA_NORMAL = enum.auto()
+    ARENA_FIRE = enum.auto()
+    ARENA_WATER = enum.auto()
+    ARENA_GRASS = enum.auto()
+    ARENA_ELECTRIC = enum.auto()
+    ARENA_ICE = enum.auto()
+    ARENA_FIGHTING = enum.auto()
+    ARENA_POISON = enum.auto()
+    ARENA_GROUND = enum.auto()
+    ARENA_FLYING = enum.auto()
+    ARENA_PSYCHIC = enum.auto()
+    ARENA_BUG = enum.auto()
+    ARENA_ROCK = enum.auto()
+    ARENA_GHOST = enum.auto()
+    ARENA_DARK = enum.auto()
+    ARENA_DRAGON = enum.auto()
+    ARENA_STEEL = enum.auto()
+    ARENA_FAIRY = enum.auto()
+
 
 class StreetType(enum.IntEnum):
     HIGHWAY = enum.auto()
