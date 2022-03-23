@@ -134,6 +134,7 @@ class StreetType(enum.IntEnum):
     STREET = enum.auto()
     PATH = enum.auto()
     RAILS = enum.auto()
+    WATER = enum.auto()
 
 
 class AreaType(enum.IntEnum):

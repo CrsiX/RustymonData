@@ -41,6 +41,7 @@ enum class SpawnType {
     WOOD,
 };
 
+
 enum class POIType {
     NONE,
     POKE_CENTER,
@@ -90,7 +91,8 @@ enum class StreetType {
     HIGHWAY,
     STREET,
     PATH,
-    RAILS
+    RAILS,
+    WATER
 };
 
 
