@@ -252,3 +252,17 @@ class World(_Base):
             streets=kwargs.get("streets", []),
             areas=kwargs.get("areas", [])
         )
+
+
+class Condition(_Base):
+    index: int = 1
+    modifier: float
+    weathers: List[WeatherType]
+    moons: List[MoonType]
+    times: List[TimeType]
+
+
+class SpawnRelation(_Base):
+    spawn_area: SpawnType
+    probability: float
+    conditions: List[Condition]
