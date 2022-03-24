@@ -151,6 +151,37 @@ class AreaType(enum.IntEnum):
     MILITARY = enum.auto()
 
 
+class MoonType(enum.IntEnum):
+    FULL = enum.auto()
+    DECREASING = enum.auto()
+    NEW = enum.auto()
+    INCREASING = enum.auto()
+    LUNAR_ECLIPSE = enum.auto()
+    SUN_ECLIPSE = enum.auto()
+    BLOODY = enum.auto()
+
+
+class TimeType(enum.IntEnum):
+    MORNING = enum.auto()
+    NOON = enum.auto()
+    EVENING = enum.auto()
+    NIGHT = enum.auto()
+
+
+class WeatherType(enum.IntEnum):
+    CLEAR  = enum.auto()
+    PARTY_CLOUDY = enum.auto()
+    CLOUDY = enum.auto()
+    WINDY = enum.auto()
+    FOGGY = enum.auto()
+    RAINY = enum.auto()
+    SNOWY = enum.auto()
+    SANDSTORM = enum.auto()
+    THUNDERSTORM = enum.auto()
+    VOLCANIC_ERUPTION = enum.auto()
+    EXTREME_WARNING = enum.auto()
+
+
 class PointOfInterest(_Base):
     type: Union[int, POIType]
     point: Tuple[float, float]

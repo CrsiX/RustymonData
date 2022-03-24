@@ -38,7 +38,7 @@ enum class SpawnType {
     URBAN,
     VULCAN,
     WETLAND,
-    WOOD,
+    WOOD
 };
 
 
@@ -108,4 +108,38 @@ enum class AreaType {
     URBAN,
     VULCAN,
     MILITARY
+};
+
+
+enum class MoonType {
+    FULL,
+    DECREASING,
+    NEW,
+    INCREASING,
+    LUNAR_ECLIPSE,
+    SUN_ECLIPSE,
+    BLOODY
+};
+
+
+enum class TimeType {
+    MORNING,
+    NOON,
+    EVENING,
+    NIGHT
+};
+
+
+enum class WeatherType {
+    CLEAR,
+    PARTY_CLOUDY,
+    CLOUDY,
+    WINDY,
+    FOGGY,
+    RAINY,
+    SNOWY,
+    SANDSTORM,
+    THUNDERSTORM,
+    VOLCANIC_ERUPTION,
+    EXTREME_WARNING
 };
