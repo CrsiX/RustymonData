@@ -169,7 +169,7 @@ class TimeType(enum.IntEnum):
 
 
 class WeatherType(enum.IntEnum):
-    CLEAR  = enum.auto()
+    CLEAR = enum.auto()
     PARTY_CLOUDY = enum.auto()
     CLOUDY = enum.auto()
     WINDY = enum.auto()

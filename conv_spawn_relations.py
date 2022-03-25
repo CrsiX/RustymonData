@@ -3,6 +3,9 @@
 import os
 import json
 
+from src import classes
+
+
 MAX_RARITY = 300.0
 RARITY_ROUNDING = 5
 
@@ -12,9 +15,24 @@ SINGLE_STATS_FILES = sorted(list(os.walk(SINGLE_STATS_DIR))[0][2])
 ALL_POKEMON_DIR = "."
 ALL_POKEMON_FILES = list(os.walk(ALL_POKEMON_DIR))[0][2]
 
-ALL_KEYS = {
+ALL_SPAWN_INFO_KEYS = {
     "minLevel", "maxLevel", "tags", "spec", "rarityMultipliers", "typeID",
     "stringLocationTypes", "condition", "anticondition", "heldItems", "rarity"
+}
+ALL_CONDITION_KEYS = {
+    'baseBlocks', 'dimensions', 'maxLightLevel', 'stringBiomes', 'temperature',
+    'minY', 'maxY', 'neededNearbyBlocks', 'weathers', 'times'
+}
+
+TIMES_MAPPING = {
+    "DAWN": [classes.TimeType.NIGHT, classes.TimeType.MORNING],
+    "MORNING": [classes.TimeType.MORNING],
+    "DAY": [classes.TimeType.MORNING, classes.TimeType.NOON],
+    "MIDDAY": [classes.TimeType.NOON],
+    "AFTERNOON": [classes.TimeType.NOON, classes.TimeType.EVENING],
+    "DUSK": [classes.TimeType.EVENING],
+    "NIGHT": [classes.TimeType.EVENING, classes.TimeType.NIGHT],
+    "MIDNIGHT": [classes.TimeType.NIGHT]
 }
 
 
@@ -22,8 +40,13 @@ def convert_spawn_info(spawn_info: dict, poke_id: int, name: str, male_chance: f
     result = []
     for entry in spawn_info:
         for k in entry:
-            if k not in ALL_KEYS:
+            if k not in ALL_SPAWN_INFO_KEYS:
                 print("Unknown key", k, "encountered for", poke_id)
+        for k in list(entry.get("condition", {}).keys()) + list(entry.get("anticondition", {}).keys()):
+            if k not in ALL_CONDITION_KEYS:
+                print("Unknown condition key", k, "encountered for", poke_id)
+        if entry.get("typeID", "pokemon") != "pokemon":
+            print("Unknown typeID for", poke_id)
 
         result.append({
             "min_level": entry["minLevel"],
