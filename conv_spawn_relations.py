@@ -2,9 +2,15 @@
 
 import os
 import json
+from typing import Optional
 
 from src import classes
 
+
+PRINT_UNKNOWN_ITEM = False
+PRINT_UNKNOWN_SPEC = False
+PRINT_UNKNOWN_TAGS = False
+PRINT_UNKNOWN_MULTIPLIER = False
 
 MAX_RARITY = 300.0
 RARITY_ROUNDING = 5
@@ -110,8 +116,17 @@ BIOME_MAPPING = {
     "end_barrens": []
 }
 
+ITEM_MAPPING = {}  # TODO: fill with actual values
+
 
 def convert_spawn_info(spawn_info: dict, poke_id: int, name: str, male_chance: float) -> list[dict]:
+    def map_item(item_id: str) -> Optional[int]:
+        if item_id in ITEM_MAPPING:
+            return ITEM_MAPPING[item_id]
+        if PRINT_UNKNOWN_ITEM:
+            print("Unknown item ID", item_id, "for", poke_id)
+        return None
+
     result = []
     for entry in spawn_info:
         for k in entry:
@@ -126,6 +141,11 @@ def convert_spawn_info(spawn_info: dict, poke_id: int, name: str, male_chance: f
         result.append({
             "min_level": entry["minLevel"],
             "max_level": entry["maxLevel"],
+            "held_items": [
+                {"item": map_item(item["itemID"]), "chance": item["percentChance"] / 100}
+                for item in entry.get("heldItems", [])
+                if item["percentChance"] > 0 and map_item(item["itemID"]) is not None
+            ],
             "male_chance": male_chance,
             "spawn_area": 1337,  # TODO: select correct ID of SpawnAreaType
             "probability": round(entry["rarity"] / MAX_RARITY, RARITY_ROUNDING),
@@ -133,6 +153,13 @@ def convert_spawn_info(spawn_info: dict, poke_id: int, name: str, male_chance: f
                 # TODO: add conditions
             ]
         })
+
+        if PRINT_UNKNOWN_SPEC and "spec" in entry and entry["spec"] != {"name": name}:
+            print("Unknown spec for", name)
+        if PRINT_UNKNOWN_MULTIPLIER and "rarityMultipliers" in entry:
+            print("rarityMultipliers for", poke_id)
+        if PRINT_UNKNOWN_TAGS and "tags" in entry:
+            print("tags for", poke_id)
 
     return result
 
