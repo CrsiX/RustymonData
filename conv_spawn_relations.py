@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 import os
+import enum
 import json
-from typing import Optional
+from typing import Optional, Type
 
 from src import classes
 
@@ -20,6 +21,8 @@ SINGLE_STATS_FILES = sorted(list(os.walk(SINGLE_STATS_DIR))[0][2])
 
 ALL_POKEMON_DIR = "."
 ALL_POKEMON_FILES = list(os.walk(ALL_POKEMON_DIR))[0][2]
+
+SPAWN_AREA_MAPPING_FILE = "."
 
 ALL_SPAWN_INFO_KEYS = {
     "minLevel", "maxLevel", "tags", "spec", "rarityMultipliers", "typeID",
@@ -206,7 +209,26 @@ ITEM_MAPPING = {
 }
 
 
+def _to_enum(c, t: Type[enum.Enum]) -> Optional[enum.Enum]:
+    try:
+        return t(int(c))
+    except ValueError:
+        try:
+            return t[c]
+        except KeyError:
+            pass
+
+
 def convert_spawn_info(spawn_info: dict, poke_id: int, name: str, male_chance: float) -> list[dict]:
+    def _get_any_condition() -> dict:
+        return {
+            "index": 1,
+            "modifier": 1.0,
+            "weathers": [int(x) + 1 for x in range(len(classes.WeatherType))],
+            "moons": [int(x) + 1 for x in range(len(classes.MoonType))],
+            "times": [int(x) + 1 for x in range(len(classes.TimeType))]
+        }
+
     def map_item(item_id: str) -> Optional[int]:
         if item_id in ITEM_MAPPING:
             return ITEM_MAPPING[item_id]
@@ -235,10 +257,10 @@ def convert_spawn_info(spawn_info: dict, poke_id: int, name: str, male_chance: f
             ],
             "male_chance": male_chance,
             "spawn_area": 1337,  # TODO: select correct ID of SpawnAreaType
-            "probability": round(entry["rarity"] / MAX_RARITY, RARITY_ROUNDING),
+            "chance": round(entry["rarity"] / MAX_RARITY, RARITY_ROUNDING),
             "conditions": [
                 # TODO: add conditions
-            ]
+            ] or _get_any_condition()
         })
 
         if PRINT_UNKNOWN_SPEC and "spec" in entry and entry["spec"] != {"name": name}:
