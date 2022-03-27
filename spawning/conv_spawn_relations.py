@@ -5,7 +5,7 @@ import enum
 import json
 from typing import Optional, Type
 
-from src import classes
+import common
 
 
 PRINT_UNKNOWN_ITEM = False
@@ -37,25 +37,25 @@ ALL_CONDITION_KEYS = {
 }
 
 TIMES_MAPPING = {
-    "DAWN": [classes.TimeType.NIGHT, classes.TimeType.MORNING],
-    "MORNING": [classes.TimeType.MORNING],
-    "DAY": [classes.TimeType.MORNING, classes.TimeType.NOON],
-    "MIDDAY": [classes.TimeType.NOON],
-    "AFTERNOON": [classes.TimeType.NOON, classes.TimeType.EVENING],
-    "DUSK": [classes.TimeType.EVENING],
-    "NIGHT": [classes.TimeType.EVENING, classes.TimeType.NIGHT],
-    "MIDNIGHT": [classes.TimeType.NIGHT]
+    "DAWN": [common.TimeType.NIGHT, common.TimeType.MORNING],
+    "MORNING": [common.TimeType.MORNING],
+    "DAY": [common.TimeType.MORNING, common.TimeType.NOON],
+    "MIDDAY": [common.TimeType.NOON],
+    "AFTERNOON": [common.TimeType.NOON, common.TimeType.EVENING],
+    "DUSK": [common.TimeType.EVENING],
+    "NIGHT": [common.TimeType.EVENING, common.TimeType.NIGHT],
+    "MIDNIGHT": [common.TimeType.NIGHT]
 }
 
 MOON_MAPPING = {
-    0: [classes.MoonType.FULL],
-    1: [classes.MoonType.FULL, classes.MoonType.DECREASING],
-    2: [classes.MoonType.DECREASING],
-    3: [classes.MoonType.DECREASING, classes.MoonType.NEW],
-    4: [classes.MoonType.NEW],
-    5: [classes.MoonType.NEW, classes.MoonType.INCREASING],
-    6: [classes.MoonType.INCREASING],
-    7: [classes.MoonType.INCREASING, classes.MoonType.FULL],
+    0: [common.MoonType.FULL],
+    1: [common.MoonType.FULL, common.MoonType.DECREASING],
+    2: [common.MoonType.DECREASING],
+    3: [common.MoonType.DECREASING, common.MoonType.NEW],
+    4: [common.MoonType.NEW],
+    5: [common.MoonType.NEW, common.MoonType.INCREASING],
+    6: [common.MoonType.INCREASING],
+    7: [common.MoonType.INCREASING, common.MoonType.FULL],
 }
 
 
@@ -74,9 +74,10 @@ def convert_spawn_info(spawn_info: dict, poke_id: int, name: str, male_chance: f
         return {
             "index": 1,
             "modifier": 1.0,
-            "weathers": [int(x) + 1 for x in range(len(classes.WeatherType))],
-            "moons": [int(x) + 1 for x in range(len(classes.MoonType))],
-            "times": [int(x) + 1 for x in range(len(classes.TimeType))]
+            "weathers": [int(x) + 1 for x in range(len(common.WeatherType))],
+            "moons": [int(x) + 1 for x in range(len(common.MoonType))],
+            "times": [int(x) + 1 for x in range(len(common.TimeType))],
+            "temperatures": [int(x) + 1 for x in range(len(common.TemperatureType))]
         }
 
     def map_item(item_id: str) -> Optional[int]:

@@ -3,7 +3,8 @@ import time
 import uuid as _uuid
 from typing import List, Tuple, Union
 
-from . import __format_version__
+
+FORMAT_VERSION = 1
 
 
 class _Base(dict):
@@ -255,7 +256,7 @@ class World(_Base):
             uuid=(str(uuid) if isinstance(uuid, _uuid.UUID) else uuid and str(_uuid.UUID(uuid))) or str(_uuid.uuid4()),
             bbox=tuple(float(b) for b in bbox),
             timestamp=int(kwargs.get("timestamp", round(time.time()))),
-            version=int(kwargs.get("version", __format_version__)),
+            version=int(kwargs.get("version", FORMAT_VERSION)),
             points=kwargs.get("points", []),
             streets=kwargs.get("streets", []),
             areas=kwargs.get("areas", [])

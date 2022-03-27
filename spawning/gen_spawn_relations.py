@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
 """
-Script to generate a JSON file mapping spawn areas with various probabilities to Pokemon species
+Script to interactively generate a JSON file mapping spawn areas with various probabilities to Pokemon species
 """
 
 import os
 import sys
 import json
 
-from src import classes
+from . import common
 
 
 def _to_int(s: str) -> int:
@@ -36,7 +36,7 @@ def _to_enum(c, t) -> int:
 def get_spawn_area(p_id: int) -> int:
     spawn_area = None
     while spawn_area is None:
-        spawn_area = _to_enum(input(f"Selected spawn area for {p_id}: "), classes.SpawnType)
+        spawn_area = _to_enum(input(f"Selected spawn area for {p_id}: "), common.SpawnType)
     return spawn_area
 
 
@@ -52,13 +52,13 @@ def get_probability(p_id: int) -> float:
 
 
 def _get_all_condition():
-    return classes.Condition(
+    return [common.Condition(
         index=1,
         modifier=1.0,
-        weathers=[int(x) + 1 for x in range(len(classes.WeatherType))],
-        moons=[int(x) + 1 for x in range(len(classes.MoonType))],
-        times=[int(x) + 1 for x in range(len(classes.TimeType))]
-    )
+        weathers=[int(x) + 1 for x in range(len(common.WeatherType))],
+        moons=[int(x) + 1 for x in range(len(common.MoonType))],
+        times=[int(x) + 1 for x in range(len(common.TimeType))]
+    )]
 
 
 def get_conditions(p_id: int) -> list:
@@ -69,23 +69,23 @@ def get_conditions(p_id: int) -> list:
 
     more_conditions = True
     while more_conditions:
-        weathers = [int(x) + 1 for x in range(len(classes.WeatherType))]
-        moons = [int(x) + 1 for x in range(len(classes.MoonType))]
-        times = [int(x) + 1 for x in range(len(classes.TimeType))]
+        weathers = [int(x) + 1 for x in range(len(common.WeatherType))]
+        moons = [int(x) + 1 for x in range(len(common.MoonType))]
+        times = [int(x) + 1 for x in range(len(common.TimeType))]
 
         w = input("Any weather conditions? (Enter = any weather okay, list of weathers = selected weather conditions) ")
         if w:
-            weathers = [_to_enum(x, classes.WeatherType) for x in w.split(" ")]
+            weathers = [_to_enum(x, common.WeatherType) for x in w.split(" ")]
             print(f"Using {weathers!r}.")
             weathers = [int(x) for x in weathers]
         m = input("Any moon conditions? (Enter = any moon okay, list of moons = selected moon conditions) ")
         if m:
-            moons = [_to_enum(x, classes.MoonType) for x in m.split(" ")]
+            moons = [_to_enum(x, common.MoonType) for x in m.split(" ")]
             print(f"Using {moons!r}.")
             moons = [int(x) for x in moons]
         t = input("Any time conditions? (Enter = any time okay, list of times = selected time conditions) ")
         if t:
-            times = [_to_enum(x, classes.TimeType) for x in t.split(" ")]
+            times = [_to_enum(x, common.TimeType) for x in t.split(" ")]
             print(f"Using {times!r}.")
             times = [int(x) for x in times]
 
@@ -99,7 +99,7 @@ def get_conditions(p_id: int) -> list:
             except ValueError:
                 modifier = None
 
-        conditions.append(classes.Condition(
+        conditions.append(common.Condition(
             index=len(conditions) + 1,
             modifier=float(modifier),
             weathers=weathers,
@@ -132,7 +132,7 @@ def main():
                 spawn_area = get_spawn_area(pokemon_id)
                 probability = get_probability(pokemon_id)
                 conditions = get_conditions(pokemon_id)
-                data[pokemon_id].append(classes.SpawnRelation(
+                data[pokemon_id].append(common.SpawnRelation(
                     spawn_area=spawn_area, probability=probability, conditions=conditions
                 ))
             pokemon_id = _to_int(input("Pokemon ID: "))
