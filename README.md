@@ -1,6 +1,10 @@
-# PokeWorld Generator using OSM
+# Rustymon Data Repository
 
-## File format
+## World generator using OSM data
+
+See the `world` directory.
+
+### File format
 
 ```json5
 {
@@ -56,3 +60,7 @@
     ]
 }
 ```
+
+## Mob spawning
+
+See the `spawning` directory.
