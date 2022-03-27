@@ -22,8 +22,6 @@ SINGLE_STATS_FILES = sorted(list(os.walk(SINGLE_STATS_DIR))[0][2])
 ALL_POKEMON_DIR = "."
 ALL_POKEMON_FILES = list(os.walk(ALL_POKEMON_DIR))[0][2]
 
-SPAWN_AREA_MAPPING_FILE = "."
-
 ALL_SPAWN_INFO_KEYS = {
     "minLevel", "maxLevel", "tags", "spec", "rarityMultipliers", "typeID",
     "stringLocationTypes", "condition", "anticondition", "heldItems", "rarity"
@@ -55,69 +53,6 @@ MOON_MAPPING = {
     7: [classes.MoonType.INCREASING, classes.MoonType.FULL],
 }
 
-BIOME_MAPPING = {
-    "the_void": [],
-    "plains": [],
-    "sunflower_plains": [],
-    "snowy_plains": [],
-    "ice_spikes": [],
-    "desert": [],
-    "swamp": [],
-    "forest": [],
-    "flower_forest": [],
-    "birch_forest": [],
-    "dark_forest": [],
-    "old_growth_birch_forest": [],
-    "old_growth_pine_taiga": [],
-    "old_growth_spruce_taiga": [],
-    "taiga": [],
-    "snowy_taiga": [],
-    "savanna": [],
-    "savanna_plateau": [],
-    "windswept_hills": [],
-    "windswept_gravelly_hills": [],
-    "windswept_forest": [],
-    "windswept_savanna": [],
-    "jungle": [],
-    "sparse_jungle": [],
-    "bamboo_jungle": [],
-    "badlands": [],
-    "eroded_badlands": [],
-    "wooded_badlands": [],
-    "meadow": [],
-    "grove": [],
-    "snowy_slopes": [],
-    "frozen_peaks": [],
-    "jagged_peaks": [],
-    "stony_peaks": [],
-    "river": [],
-    "frozen_river": [],
-    "beach": [],
-    "snowy_beach": [],
-    "stony_shore": [],
-    "warm_ocean": [],
-    "lukewarm_ocean": [],
-    "deep_lukewarm_ocean": [],
-    "ocean": [],
-    "deep_ocean": [],
-    "cold_ocean": [],
-    "deep_cold_ocean": [],
-    "frozen_ocean": [],
-    "deep_frozen_ocean": [],
-    "mushroom_fields": [],
-    "dripstone_caves": [],
-    "lush_caves": [],
-    "nether_wastes": [],
-    "warped_forest": [],
-    "crimson_forest": [],
-    "soul_sand_valley": [],
-    "basalt_deltas": [],
-    "the_end": [],
-    "end_highlands": [],
-    "end_midlands": [],
-    "small_end_islands": [],
-    "end_barrens": []
-}
 
 ITEM_MAPPING = {
     "pixelmon:smoke_ball": 75,
@@ -251,16 +186,16 @@ def convert_spawn_info(spawn_info: dict, poke_id: int, name: str, male_chance: f
             "min_level": entry["minLevel"],
             "max_level": entry["maxLevel"],
             "held_items": [
-                {"item": map_item(item["itemID"]), "chance": item["percentChance"] / 100}
+                {"item": map_item(item["itemID"]), "probability": item["percentChance"] / 100}
                 for item in entry.get("heldItems", [])
                 if item["percentChance"] > 0 and map_item(item["itemID"]) is not None
             ],
-            "male_chance": male_chance,
+            "female_probability": (1 - male_chance) if male_chance != -1 else -1,
             "spawn_area": 1337,  # TODO: select correct ID of SpawnAreaType
-            "chance": round(entry["rarity"] / MAX_RARITY, RARITY_ROUNDING),
             "conditions": [
                 # TODO: add conditions
             ] or _get_any_condition()
+            "probability": round(entry["rarity"] / MAX_RARITY, RARITY_ROUNDING),
         })
 
         if PRINT_UNKNOWN_SPEC and "spec" in entry and entry["spec"] != {"name": name}:
@@ -297,8 +232,9 @@ def convert_all():
 
         with open(spawn_details_file) as fd:
             spawn_data = json.load(fd)
+        male_percent = (data["malePercent"] / 100) if data["malePercent"] != -1 else -1
         complete_data["spawns"][poke_id] = convert_spawn_info(
-            spawn_data["spawnInfos"], poke_id, name, data["malePercent"] / 100
+            spawn_data["spawnInfos"], poke_id, name, male_percent
         )
 
     complete_data["no_spawns"] = pokemon_without_spawn
