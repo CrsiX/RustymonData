@@ -22,6 +22,11 @@ SINGLE_STATS_FILES = sorted(list(os.walk(SINGLE_STATS_DIR))[0][2])
 ALL_POKEMON_DIR = "."
 ALL_POKEMON_FILES = list(os.walk(ALL_POKEMON_DIR))[0][2]
 
+ITEM_MAPPING_FILE = "item_mapping.json"
+with open(ITEM_MAPPING_FILE) as _f:
+    ITEM_MAPPING = json.load(_f)
+del _f
+
 ALL_SPAWN_INFO_KEYS = {
     "minLevel", "maxLevel", "tags", "spec", "rarityMultipliers", "typeID",
     "stringLocationTypes", "condition", "anticondition", "heldItems", "rarity"
@@ -54,96 +59,6 @@ MOON_MAPPING = {
 }
 
 
-ITEM_MAPPING = {
-    "pixelmon:smoke_ball": 75,
-    "pixelmon:razor_claw": 105,
-    "pixelmon:razor_fang": 110,
-    "pixelmon:charcoal": 136,
-    "pixelmon:silver_powder": 146,
-    "pixelmon:poison_barb": 142,
-    "pixelmon:pecha_berry": 391,
-    "pixelmon:sharp_beak": 144,
-    "pixelmon:light_ball": 186,
-    "pixelmon:grip_claw": 89,
-    "pixelmon:moon_stone": 16,
-    "pixelmon:snowball": 542,
-    "pixelmon:absorb_bulb": 98,
-    "pixelmon:big_mushroom": 39,
-    "pixelmon:tiny_mushroom": 38,
-    "pixelmon:shed_shell": 74,
-    "pixelmon:soft_sand": 143,
-    "pixelmon:quick_claw": 112,
-    "pixelmon:kings_rock": 109,
-    "pixelmon:twisted_spoon": 145,
-    "pixelmon:focus_band": 113,
-    "pixelmon:ever_stone": 202,
-    "pixelmon:cell_battery": 99,
-    "pixelmon:lagging_tail": 111,
-    "pixelmon:metal_coat": 151,
-    "pixelmon:black_sludge": 92,
-    "pixelmon:big_pearl": 42,
-    "pixelmon:pearl": 41,
-    "pixelmon:psychic_seed": 538,
-    "pixelmon:thick_club": 190,
-    "pixelmon:protector": 206,
-    "pixelmon:lucky_punch": 187,
-    "pixelmon:dragon_scale": 203,
-    "pixelmon:mystic_water": 137,
-    "pixelmon:star_piece": 45,
-    "pixelmon:stardust": 44,
-    "pixelmon:electirizer": 207,
-    "pixelmon:magmarizer": 208,
-    "pixelmon:leftovers": 93,
-    "pixelmon:deep_sea_scale": 194,
-    "pixelmon:wide_lens": 107,
-    "pixelmon:berry_juice": 234,
-    "pixelmon:luminous_moss": 541,
-    "pixelmon:moomoo_milk": 240,
-    "pixelmon:lucky_egg": 76,
-    "pixelmon:revive": 232,
-    "pixelmon:potion": 217,
-    "pixelmon:max_revive": 233,
-    "pixelmon:bright_powder": 67,
-    "pixelmon:mental_herb": 95,
-    "pixelmon:power_herb": 97,
-    "pixelmon:black_belt": 141,
-    "pixelmon:magnet": 138,
-    "pixelmon:iron_ball": 118,
-    "pixelmon:hard_stone": 147,
-    "pixelmon:sitrus_berry": 398,
-    "pixelmon:oran_berry": 395,
-    "pixelmon:deep_sea_tooth": 193,
-    "pixelmon:sticky_barb": 117,
-    "pixelmon:sun_stone": 17,
-    "pixelmon:light_clay": 88,
-    "pixelmon:prism_scale": 210,
-    "pixelmon:icy_rock": 87,
-    "pixelmon:damp_rock": 85,
-    "pixelmon:heat_rock": 84,
-    "pixelmon:spell_tag": 148,
-    "pixelmon:kasib_berry": 436,
-    "pixelmon:heart_scale": 49,
-    "pixelmon:dragon_fang": 149,
-    "pixelmon:metronome": 102,
-    "pixelmon:miracle_seed": 139,
-    "pixelmon:never_melt_ice": 140,
-    "pixelmon:reaper_cloth": 209,
-    "pixelmon:black_glasses": 150,
-    "pixelmon:silk_scarf": 152,
-    "pixelmon:sachet": 614,
-    "pixelmon:whipped_dream": 613,
-    "pixelmon:rawst_berry": 392,
-    "pixelmon:aspear_berry": 393,
-    "pixelmon:cheri_berry": 389,
-    "pixelmon:grassy_seed": 540,
-    "pixelmon:misty_seed": 539,
-    "pixelmon:electric_seed": 537,
-    "pixelmon:chesto_berry": 390,
-    "pixelmon:persim_berry": 396,
-    "pixelmon:leek": 191
-}
-
-
 def _to_enum(c, t: Type[enum.Enum]) -> Optional[enum.Enum]:
     try:
         return t(int(c))
@@ -167,6 +82,8 @@ def convert_spawn_info(spawn_info: dict, poke_id: int, name: str, male_chance: f
     def map_item(item_id: str) -> Optional[int]:
         if item_id in ITEM_MAPPING:
             return ITEM_MAPPING[item_id]
+        if item_id.replace("pixelmon:", "") in ITEM_MAPPING:
+            return ITEM_MAPPING[item_id.replace("pixelmon:", "")]
         if PRINT_UNKNOWN_ITEM:
             print("Unknown item ID", item_id, "for", poke_id)
         return None
