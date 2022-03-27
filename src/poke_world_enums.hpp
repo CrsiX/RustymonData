@@ -143,3 +143,12 @@ enum class WeatherType {
     VOLCANIC_ERUPTION,
     EXTREME_WARNING
 };
+
+
+enum class TemperatureType {
+    FREEZING,
+    COLD,
+    NORMAL,
+    WARM,
+    HOT
+};

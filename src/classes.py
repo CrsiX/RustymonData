@@ -182,6 +182,14 @@ class WeatherType(enum.IntEnum):
     EXTREME_WARNING = enum.auto()
 
 
+class TemperatureType(enum.IntEnum):
+    FREEZING = enum.auto()
+    COLD = enum.auto()
+    NORMAL = enum.auto()
+    WARM = enum.auto()
+    HOT = enum.auto()
+
+
 class PointOfInterest(_Base):
     type: Union[int, POIType]
     point: Tuple[float, float]
