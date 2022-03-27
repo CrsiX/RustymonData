@@ -1,8 +1,8 @@
 # Name of the output executable
-OUT_EXE = poke_world_generator
+OUT_EXE = world_generator
 
 # Name of the input C++ file
-IN_CPP = src/poke_world_generator.cpp
+IN_CPP = world_generator.cpp
 
 all: clean build run
 
