@@ -8,7 +8,7 @@ import os
 import sys
 import json
 
-from . import common
+import common
 
 
 def _to_int(s: str) -> int:
@@ -18,25 +18,10 @@ def _to_int(s: str) -> int:
         print(f"Invalid integer '{s}'!")
 
 
-def _to_enum(c, t) -> int:
-    try:
-        v = int(c)
-        print(f"Using {t(v)!r}.")
-        return v
-    except ValueError:
-        try:
-            v = t[c]
-            print(f"Using {v!r}.")
-            return int(v)
-        except KeyError:
-            pass
-    pass
-
-
 def get_spawn_area(p_id: int) -> int:
     spawn_area = None
     while spawn_area is None:
-        spawn_area = _to_enum(input(f"Selected spawn area for {p_id}: "), common.SpawnType)
+        spawn_area = common.to_enum(input(f"Selected spawn area for {p_id}: "), common.SpawnType, strict=True)
     return spawn_area
 
 
@@ -51,19 +36,9 @@ def get_probability(p_id: int) -> float:
         probability = None
 
 
-def _get_all_condition():
-    return [common.Condition(
-        index=1,
-        modifier=1.0,
-        weathers=[int(x) + 1 for x in range(len(common.WeatherType))],
-        moons=[int(x) + 1 for x in range(len(common.MoonType))],
-        times=[int(x) + 1 for x in range(len(common.TimeType))]
-    )]
-
-
 def get_conditions(p_id: int) -> list:
     if not input(f"Any conditions for {p_id}? (Enter for No, anything for Yes) "):
-        return _get_all_condition()
+        return [common.get_any_condition()]
     conditions = []
     print("Start with the most general condition, then enter the most specific conditions!")
 
@@ -75,17 +50,17 @@ def get_conditions(p_id: int) -> list:
 
         w = input("Any weather conditions? (Enter = any weather okay, list of weathers = selected weather conditions) ")
         if w:
-            weathers = [_to_enum(x, common.WeatherType) for x in w.split(" ")]
+            weathers = [common.to_enum(x, common.WeatherType, strict=True) for x in w.split(" ")]
             print(f"Using {weathers!r}.")
             weathers = [int(x) for x in weathers]
         m = input("Any moon conditions? (Enter = any moon okay, list of moons = selected moon conditions) ")
         if m:
-            moons = [_to_enum(x, common.MoonType) for x in m.split(" ")]
+            moons = [common.to_enum(x, common.MoonType, strict=True) for x in m.split(" ")]
             print(f"Using {moons!r}.")
             moons = [int(x) for x in moons]
         t = input("Any time conditions? (Enter = any time okay, list of times = selected time conditions) ")
         if t:
-            times = [_to_enum(x, common.TimeType) for x in t.split(" ")]
+            times = [common.to_enum(x, common.TimeType, strict=True) for x in t.split(" ")]
             print(f"Using {times!r}.")
             times = [int(x) for x in times]
 

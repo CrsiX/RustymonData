@@ -1,7 +1,7 @@
 import enum
 import time
 import uuid as _uuid
-from typing import List, Tuple, Union
+from typing import Any, List, Optional, Tuple, Type, Union
 
 
 FORMAT_VERSION = 1
@@ -269,9 +269,39 @@ class Condition(_Base):
     weathers: List[WeatherType]
     moons: List[MoonType]
     times: List[TimeType]
+    temperatures: List[TemperatureType]
 
 
 class SpawnRelation(_Base):
     spawn_area: SpawnType
     probability: float
     conditions: List[Condition]
+
+
+def get_any_condition() -> Condition:
+    return Condition(
+        index=1,
+        modifier=1.0,
+        weathers=[to_enum(x, WeatherType) for x in range(len(WeatherType))],
+        moons=[to_enum(x, MoonType) for x in range(len(MoonType))],
+        times=[to_enum(x, TimeType) for x in range(len(TimeType))],
+        temperatures=[to_enum(x, TemperatureType) for x in range(len(TemperatureType))]
+    )
+
+
+def to_enum(v: Any, t: Type[enum.IntEnum], strict: bool = False, echo: bool = False) -> Optional[enum.IntEnum]:
+    try:
+        v = int(v)
+        if echo:
+            print(f"Using {t(v)!r}.")
+        return t(v)
+    except ValueError:
+        try:
+            v = t[v]
+            if echo:
+                print(f"Using {v!r}.")
+            return v
+        except KeyError:
+            pass
+    if strict:
+        raise ValueError(f"Unknown member {v} for type {t}")

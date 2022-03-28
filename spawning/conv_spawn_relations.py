@@ -69,29 +69,7 @@ WEATHER_MAPPING = {
 }
 
 
-def _to_enum(c, t: Type[enum.Enum], strict: bool = False) -> Optional[enum.Enum]:
-    try:
-        return t(int(c))
-    except ValueError:
-        try:
-            return t[c]
-        except KeyError:
-            pass
-    if strict:
-        raise ValueError(f"Unknown value {c} for enum {t}")
-
-
 def convert_spawn_info(spawn_info: dict, poke_id: int, name: str, male_chance: float) -> list[dict]:
-    def _get_any_condition() -> dict:
-        return {
-            "index": 1,
-            "modifier": 1.0,
-            "weathers": [int(x) + 1 for x in range(len(common.WeatherType))],
-            "moons": [int(x) + 1 for x in range(len(common.MoonType))],
-            "times": [int(x) + 1 for x in range(len(common.TimeType))],
-            "temperatures": [int(x) + 1 for x in range(len(common.TemperatureType))]
-        }
-
     def _get_conditions(cons, antis) -> list[dict]:
         cons = cons or {}
         antis = antis or {}
@@ -111,11 +89,11 @@ def convert_spawn_info(spawn_info: dict, poke_id: int, name: str, male_chance: f
         if "temperatures" in cons:
             temperatures = set()
             for t in cons["temperatures"]:
-                temperatures.add(_to_enum(t, common.TemperatureType, True))
+                temperatures.add(common.to_enum(t, common.TemperatureType, strict=True))
         if "temperatures" in antis:
             for t in antis["temperatures"]:
                 if t in temperatures:
-                    temperatures.remove(_to_enum(t, common.TemperatureType, True))
+                    temperatures.remove(common.to_enum(t, common.TemperatureType, strict=True))
 
         weathers = set(int(x) + 1 for x in range(len(common.WeatherType)))
         if "weathers" in cons:
