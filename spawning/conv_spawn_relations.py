@@ -16,6 +16,8 @@ PRINT_UNKNOWN_MULTIPLIER = False
 MAX_RARITY = 300.0
 RARITY_ROUNDING = 5
 
+SKIPPED_POKEMON = list(range(650, 1024))
+
 CONVERSION_RESULT_FILE = "spawn_probabilities.json"
 
 SINGLE_STATS_DIR = "."
@@ -182,11 +184,15 @@ def convert_spawn_info(spawn_info: dict, poke_id: int, name: str, male_chance: f
 
 def convert_all():
     complete_data = {"spawns": {}}
+    skipped_pokemon = []
     pokemon_without_spawn = []
 
     for filename in SINGLE_STATS_FILES:
         poke_id = int(filename.split(".")[0])
         if poke_id == 0:
+            continue
+        if poke_id in SKIPPED_POKEMON:
+            skipped_pokemon.append(poke_id)
             continue
 
         with open(os.path.join(SINGLE_STATS_DIR, filename)) as fd:
@@ -210,6 +216,7 @@ def convert_all():
         )
 
     complete_data["no_spawns"] = pokemon_without_spawn
+    complete_data["skipped"] = skipped_pokemon
 
     with open(CONVERSION_RESULT_FILE, "w") as fd:
         json.dump(complete_data, fd, indent=2)
