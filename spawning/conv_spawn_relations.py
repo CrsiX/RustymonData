@@ -16,6 +16,8 @@ PRINT_UNKNOWN_MULTIPLIER = False
 MAX_RARITY = 300.0
 RARITY_ROUNDING = 5
 
+CONVERSION_RESULT_FILE = "spawn_probabilities.json"
+
 SINGLE_STATS_DIR = "."
 SINGLE_STATS_FILES = sorted(list(os.walk(SINGLE_STATS_DIR))[0][2])
 
@@ -58,8 +60,14 @@ MOON_MAPPING = {
     7: [common.MoonType.INCREASING, common.MoonType.FULL],
 }
 
+WEATHER_MAPPING = {
+    "CLEAR": [],
+    "RAIN": [],
+    "STORM": []
+}
 
-def _to_enum(c, t: Type[enum.Enum]) -> Optional[enum.Enum]:
+
+def _to_enum(c, t: Type[enum.Enum], strict: bool = False) -> Optional[enum.Enum]:
     try:
         return t(int(c))
     except ValueError:
@@ -67,6 +75,8 @@ def _to_enum(c, t: Type[enum.Enum]) -> Optional[enum.Enum]:
             return t[c]
         except KeyError:
             pass
+    if strict:
+        raise ValueError(f"Unknown value {c} for enum {t}")
 
 
 def convert_spawn_info(spawn_info: dict, poke_id: int, name: str, male_chance: float) -> list[dict]:
@@ -79,6 +89,51 @@ def convert_spawn_info(spawn_info: dict, poke_id: int, name: str, male_chance: f
             "times": [int(x) + 1 for x in range(len(common.TimeType))],
             "temperatures": [int(x) + 1 for x in range(len(common.TemperatureType))]
         }
+
+    def _get_conditions(cons, antis) -> list[dict]:
+        cons = cons or {}
+        antis = antis or {}
+
+        times = set(int(x) + 1 for x in range(len(common.TimeType)))
+        if "times" in cons:
+            times = set()
+            for t in cons["times"]:
+                times |= set(TIMES_MAPPING[t])
+        if "times" in antis:
+            for t in antis["times"]:
+                for e in TIMES_MAPPING[t]:
+                    if e in times:
+                        times.remove(e)
+
+        temperatures = set(int(x) + 1 for x in range(len(common.TemperatureType)))
+        if "temperatures" in cons:
+            temperatures = set()
+            for t in cons["temperatures"]:
+                temperatures.add(_to_enum(t, common.TemperatureType, True))
+        if "temperatures" in antis:
+            for t in antis["temperatures"]:
+                if t in temperatures:
+                    temperatures.remove(_to_enum(t, common.TemperatureType, True))
+
+        weathers = set(int(x) + 1 for x in range(len(common.WeatherType)))
+        if "weathers" in cons:
+            weathers = set()
+            for w in cons["weathers"]:
+                weathers |= set(WEATHER_MAPPING[w])
+        if "weathers" in antis:
+            for w in antis["weathers"]:
+                for e in WEATHER_MAPPING[w]:
+                    if e in weathers:
+                        weathers.remove(e)
+
+        return [{
+            "index": 1337,  # TODO
+            "modifier": 1.0,
+            "weathers": sorted(weathers),
+            "moons": [int(x) + 1 for x in range(len(common.MoonType))],
+            "times": sorted(times),
+            "temperatures": sorted(temperatures)
+        }]
 
     def map_item(item_id: str) -> Optional[int]:
         if item_id in ITEM_MAPPING:
@@ -101,6 +156,7 @@ def convert_spawn_info(spawn_info: dict, poke_id: int, name: str, male_chance: f
             print("Unknown typeID for", poke_id)
 
         result.append({
+            "form": 0,  # TODO: add handling of different forms (e.g. seasons or mutations)
             "min_level": entry["minLevel"],
             "max_level": entry["maxLevel"],
             "held_items": [
@@ -109,10 +165,8 @@ def convert_spawn_info(spawn_info: dict, poke_id: int, name: str, male_chance: f
                 if item["percentChance"] > 0 and map_item(item["itemID"]) is not None
             ],
             "female_probability": (1 - male_chance) if male_chance != -1 else -1,
-            "spawn_area": 1337,  # TODO: select correct ID of SpawnAreaType
-            "conditions": [
-                # TODO: add conditions
-            ] or _get_any_condition()
+            "spawn_areas": [1337],  # TODO: select correct ID of SpawnAreaType
+            "conditions": _get_conditions(entry.get("condition"), entry.get("anticondition")),
             "probability": round(entry["rarity"] / MAX_RARITY, RARITY_ROUNDING),
         })
 
@@ -157,7 +211,7 @@ def convert_all():
 
     complete_data["no_spawns"] = pokemon_without_spawn
 
-    with open("conversion_result.json", "w") as fd:
+    with open(CONVERSION_RESULT_FILE, "w") as fd:
         json.dump(complete_data, fd, indent=2)
 
 
