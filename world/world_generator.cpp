@@ -1,6 +1,7 @@
 #include <chrono>
 #include <fstream>
 #include <iostream>
+
 #include <jsoncpp/json/json.h>
 #include <jsoncpp/json/writer.h>
 #include <osmium/handler.hpp>
@@ -12,8 +13,8 @@
 #include <osmium/handler/node_locations_for_ways.hpp>
 #include <osmium/index/map/flex_mem.hpp>
 #include <osmium/io/any_input.hpp>
-#include <osmium/osm/node.hpp>
 #include <osmium/osm/area.hpp>
+#include <osmium/osm/node.hpp>
 #include <osmium/osm/way.hpp>
 #include <osmium/relations/relations_manager.hpp>
 
@@ -23,7 +24,6 @@
 
 static const int FILE_VERSION = 1;
 static const int JSON_ENUM_OFFSET = 1;
-static const int MAX_SPAWNS = 8;
 
 using index_type = osmium::index::map::FlexMem<osmium::unsigned_object_id_type, osmium::Location>;
 using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
@@ -63,7 +63,7 @@ class WorldGenerator : public osmium::handler::Handler {
     struct POIWrapper {
         bool allowed;
         POIType type;
-        SpawnType spawns[MAX_SPAWNS];
+        Json::Value spawns;
     };
 
     struct StreetWrapper {
@@ -74,7 +74,7 @@ class WorldGenerator : public osmium::handler::Handler {
     struct AreaWrapper {
         bool allowed;
         AreaType type;
-        SpawnType spawns[MAX_SPAWNS];
+        Json::Value spawns;
     };
 
     std::string generate_new_uuid() {
@@ -107,7 +107,7 @@ class WorldGenerator : public osmium::handler::Handler {
         return POIWrapper{
                 true,  // TODO: determine whether a given point of interest should be included
                 POIType::NONE,  // TODO: select a valid POI type based on the given tags
-                {}  // TODO: determine a list of valid spawns for this POI
+                Json::Value(Json::arrayValue)  // TODO: determine a list of valid spawns for this POI
         };
     }
 
@@ -122,7 +122,7 @@ class WorldGenerator : public osmium::handler::Handler {
         return AreaWrapper{
                 true,  // TODO: determine whether a given street should be included
                 AreaType::UNDEFINED,  // TODO: select a valid street type based on the given tags
-                {}  // TODO: determine a list of valid spawns for this area
+                Json::Value(Json::arrayValue)  // TODO: determine a list of valid spawns for this area
         };
     }
 
@@ -157,6 +157,55 @@ public:
             }
             entry["points"] = waypoints;
             this->streets.append(entry);
+        }
+    }
+
+    void area(const osmium::Area& area) {
+        if (area.visible()) {
+            AreaWrapper area_details = get_area_details(area.tags());
+            if (!area_details.allowed) {
+                return;
+            }
+
+            int outer_rings = 0;
+            int inner_rings = 0;
+            for (const auto& item: area) {
+                if (item.type() == osmium::item_type::outer_ring) {
+                    outer_rings++;
+                } else if (item.type() == osmium::item_type::inner_ring) {
+                    inner_rings++;
+                }
+            }
+
+            if (outer_rings < 1) {
+                std::cerr << "Invalid area definition found in area " << area.id() << std::endl;
+                return;
+            } else if (area.is_multipolygon() || outer_rings > 1 || inner_rings > 0) {
+                // TODO: add support for multi polygons
+                std::cerr << "Unsupported multi polygon in area " << area.id() << std::endl;
+                return;
+            }
+
+            Json::Value waypoints = Json::Value(Json::arrayValue);
+            for (const auto& item: area) {
+                if (item.type() == osmium::item_type::outer_ring) {
+                    const auto& ring = static_cast<const osmium::OuterRing&>(item);
+                    osmium::Location last_location;
+                    for (const osmium::NodeRef& node : ring) {
+                        if (last_location != node.location()) {
+                            last_location = node.location();
+                            waypoints.append(make_point(last_location));
+                        }
+                    }
+                }
+            }
+
+            Json::Value entry;
+            entry["type"] = static_cast<int>(area_details.type) + JSON_ENUM_OFFSET;
+            entry["oid"] = area.id();
+            entry["points"] = waypoints;
+            entry["spawns"] = area_details.spawns;
+            this->areas.append(entry);
         }
     }
 };
