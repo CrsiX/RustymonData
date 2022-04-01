@@ -114,11 +114,51 @@ class WorldGenerator : public osmium::handler::Handler {
     }
 
     POIWrapper get_poi_details(const osmium::TagList& tags) {
-        return POIWrapper{
-                true,  // TODO: determine whether a given point of interest should be included
-                POIType::NONE,  // TODO: select a valid POI type based on the given tags
-                Json::Value(Json::arrayValue)  // TODO: determine a list of valid spawns for this POI
-        };
+        for (Json::Value item: this->config["poi"]) {
+            bool allowed = true;
+            POIType poi_type = static_cast<POIType>(item["type"].asInt() - JSON_ENUM_OFFSET);
+
+            Json::Value forbidden = item["forbidden"];
+            for (std::string forbidden_key: forbidden.getMemberNames()) {
+                if (tags.has_key(forbidden_key.c_str())) {
+                    for (Json::Value forbidden_value: forbidden[forbidden_key.c_str()]) {
+                        if (forbidden_value.asString().compare(tags.get_value_by_key(forbidden_key.c_str())) == 0) {
+                            allowed = false;
+                        }
+                    }
+                }
+            }
+
+            if (!allowed) {
+                continue;
+            }
+
+            Json::Value required = item["required"];
+            for (std::string required_key: required.getMemberNames()) {
+                if (!tags.has_key(required_key.c_str())) {
+                    allowed = false;
+                    break;
+                }
+                Json::Value required_values = required[required_key.c_str()];
+                bool found = (required_values.size() == 0);  // TODO: does .size() as expected on arrays?
+                for (Json::Value required_value: required_values) {
+                    if (strcmp(tags.get_value_by_key(required_key.c_str()), required_value.asCString()) != 0) {
+                        found = true;
+                    }
+                }
+                allowed = allowed && found;
+                if (!found) {
+                    allowed = false;
+                }
+            }
+
+            if (allowed) {
+                std::cout << "returning a POIWrapper with " << item["spawns"] << std::endl;
+                return POIWrapper{true, poi_type, item["spawns"]};
+            }
+        }
+
+        return POIWrapper{false, POIType::NONE, Json::nullValue};
     }
 
     StreetWrapper get_street_details(const osmium::TagList& tags) {
