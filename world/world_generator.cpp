@@ -78,7 +78,7 @@ class WorldGenerator : public osmium::handler::Handler {
     };
 
     std::string generate_new_uuid() {
-        return "uuid";  // TODO: actually generate version 4 UUIDs here
+        return "00000000-0000-0000-0000-000000000000";  // TODO: actually generate version 4 UUIDs here
     }
 
     Json::Value make_point(const osmium::geom::Coordinates& coordinates) const {
@@ -139,6 +139,22 @@ public:
         root["poi"] = this->poi;
         root["areas"] = this->areas;
         return root;
+    }
+
+    void node(const osmium::Node& node) {
+        if (node.visible()) {
+            POIWrapper poi_details = get_poi_details(node.tags());
+            if (!poi_details.allowed) {
+                return;
+            }
+
+            Json::Value entry;
+            entry["point"] = make_point(node.location());
+            entry["oid"] = node.id();
+            entry["type"] = static_cast<int>(poi_details.type) + JSON_ENUM_OFFSET;
+            entry["spawns"] = poi_details.spawns;
+            this->poi.append(entry);
+        }
     }
 
     void way(const osmium::Way& way) {
