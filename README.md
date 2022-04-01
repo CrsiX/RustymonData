@@ -27,7 +27,9 @@ See the `world` directory.
                 [1.7, 3.9],
                 [1.5, 4.5],
                 [0.9, 5.1]
-            ]
+            ],
+            // OpenStreetMap object ID of the source way
+            "oid": 12345
         },
     ],
     // List of in-game points of interest
@@ -38,7 +40,9 @@ See the `world` directory.
             // Type of POI (shop, arena, poke center, ...)
             "type": 2,
             // GPS location
-            "point": [-4.5, 2.7]
+            "point": [-4.5, 2.7],
+            // OpenStreetMap object ID of the source node
+            "oid": 12345
         }
     ],
     // List of in-game areas used for coloring the map and spawn areas
@@ -55,7 +59,9 @@ See the `world` directory.
                 [2.1, 2.9],
                 // the end node equals the start node
                 [1.2, 2.6]
-            ]
+            ],
+            // OpenStreetMap object ID of the source relation or way
+            "oid": 12345
         }
     ]
 }
