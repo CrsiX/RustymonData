@@ -1,6 +1,8 @@
 #include <chrono>
+#include <fstream>
 #include <iostream>
 #include <jsoncpp/json/json.h>
+#include <jsoncpp/json/writer.h>
 #include <osmium/handler.hpp>
 #include <osmium/visitor.hpp>
 #include <osmium/area/assembler.hpp>
@@ -149,6 +151,16 @@ void generate_world(const char *in_file, const char *out_file) {
                   }));
 
     reader.close();
+
+    static Json::StreamWriterBuilder builder;
+    builder["commentStyle"] = "None";
+    builder["indentation"] = "  ";
+    builder["enableYAMLCompatibility"] = true;
+
+    std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+    std::ofstream output_file_stream(out_file);
+    writer->write(data_handler.get_json_data(), &output_file_stream);
+    output_file_stream.close();
 }
 
 
