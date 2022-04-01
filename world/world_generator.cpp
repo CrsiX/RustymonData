@@ -1,14 +1,28 @@
+#include <chrono>
 #include <iostream>
 #include <jsoncpp/json/json.h>
 #include <osmium/handler.hpp>
+#include <osmium/visitor.hpp>
+#include <osmium/area/assembler.hpp>
+#include <osmium/area/multipolygon_manager.hpp>
+#include <osmium/geom/factory.hpp>
+#include <osmium/geom/geojson.hpp>
+#include <osmium/handler/node_locations_for_ways.hpp>
+#include <osmium/index/map/flex_mem.hpp>
 #include <osmium/io/any_input.hpp>
 #include <osmium/osm/node.hpp>
+#include <osmium/osm/area.hpp>
 #include <osmium/osm/way.hpp>
 #include <osmium/relations/relations_manager.hpp>
-#include <osmium/visitor.hpp>
-#include <osmium/geom/factory.hpp>
+
 #include "poke_world_enums.hpp"
 #include "poke_world_fields.hpp"
+
+
+static const int FILE_VERSION = 1;
+
+using index_type = osmium::index::map::FlexMem<osmium::unsigned_object_id_type, osmium::Location>;
+using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
 
 
 class CounterHandler : public osmium::handler::Handler {
@@ -93,13 +107,27 @@ public:
 };
 
 
-int main(int argc, char* argv[]) {
-    if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <InputFile>" << std::endl;
-        return 2;
-    }
+class WorldGenerator : public osmium::handler::Handler {
 
-    const osmium::io::File input_file{argv[1]};
+public:
+
+    Json::Value get_json_data() {
+        Json::Value root;
+        root["uuid"] = "uuid";
+        root["bbox"] = "bbox";
+        root["timestamp"] = std::chrono::duration_cast<std::chrono::seconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count();
+        root["version"] = FILE_VERSION;
+        root["streets"] = "streets";
+        root["poi"] = "poi";
+        root["areas"] = "areas";
+        return root;
+    }
+};
+
+
+void generate_world(const char *in_file, const char *out_file) {
+    const osmium::io::File input_file{in_file};
 
     osmium::area::Assembler::config_type assembler_config;
     assembler_config.create_empty_areas = false;
@@ -115,9 +143,20 @@ int main(int argc, char* argv[]) {
     WorldGenerator data_handler;
     osmium::io::Reader reader{input_file, osmium::io::read_meta::no};
 
-    osmium::apply(reader, location_handler, data_handler, mp_manager.handler([&data_handler](const osmium::memory::Buffer& area_buffer) {
-        osmium::apply(area_buffer, data_handler);
-    }));
+    osmium::apply(reader, location_handler, data_handler,
+                  mp_manager.handler([&data_handler](const osmium::memory::Buffer &area_buffer) {
+                      osmium::apply(area_buffer, data_handler);
+                  }));
 
     reader.close();
+}
+
+
+int main(int argc, char *argv[]) {
+    if (argc < 3) {
+        std::cerr << "Usage: " << argv[0] << " <InputFile> <OutputFile>" << std::endl;
+        return 2;
+    }
+    generate_world(argv[1], argv[2]);
+    return 0;
 }
