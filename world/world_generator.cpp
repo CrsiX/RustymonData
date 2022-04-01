@@ -36,6 +36,9 @@ public:
 };
 
 
+class WorldGenerator : public osmium::handler::Handler {
+
+};
 
 
 class MyManager : public osmium::relations::RelationsManager<MyManager, true, true, true> {
@@ -92,25 +95,29 @@ public:
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        std::cerr << "Usage: PokeWorldGenerator <InputFile>\n";
+        std::cerr << "Usage: " << argv[0] << " <InputFile>" << std::endl;
         return 2;
     }
-    /*
-    osmium::io::Reader reader{argv[1]};
-    CounterHandler handler;
-    osmium::apply(reader, handler);
+
+    const osmium::io::File input_file{argv[1]};
+
+    osmium::area::Assembler::config_type assembler_config;
+    assembler_config.create_empty_areas = false;
+
+    osmium::area::MultipolygonManager<osmium::area::Assembler> mp_manager{assembler_config};
+
+    osmium::relations::read_relations(input_file, mp_manager);
+    index_type index;
+
+    location_handler_type location_handler{index};
+    location_handler.ignore_errors();
+
+    WorldGenerator data_handler;
+    osmium::io::Reader reader{input_file, osmium::io::read_meta::no};
+
+    osmium::apply(reader, location_handler, data_handler, mp_manager.handler([&data_handler](const osmium::memory::Buffer& area_buffer) {
+        osmium::apply(area_buffer, data_handler);
+    }));
+
     reader.close();
-    std::cout << handler.nodes << " nodes "<< handler.ways << " ways " << handler.areas << " areas " << handler.relations << " relations\n";
-    */
-
-    osmium::io::File input_file{argv[1]};
-    MyManager manager;
-    osmium::relations::read_relations(input_file, manager);
-    osmium::io::Reader reader{input_file};
-    osmium::apply(reader, manager.handler());
-    osmium::memory::Buffer buffer = manager.read();
-
-    Json::Value v = manager.get_root();
-    v = manager.get_root();
-    std::cout << v;
 }
