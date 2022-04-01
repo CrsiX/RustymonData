@@ -53,20 +53,81 @@ public:
 
 
 class WorldGenerator : public osmium::handler::Handler {
+    Json::Value streets = Json::Value(Json::arrayValue);
+    Json::Value poi = Json::Value(Json::arrayValue);
+    Json::Value areas = Json::Value(Json::arrayValue);
+    std::string world_uuid = generate_new_uuid();
+
+    struct StreetTypeWrapper {
+        bool allowed;
+        StreetType type;
+    };
+
+    std::string generate_new_uuid() {
+        return "uuid";  // TODO: actually generate version 4 UUIDs here
+    }
+
+    Json::Value make_point(const osmium::geom::Coordinates& coordinates) const {
+        if (coordinates.valid()) {
+            Json::Value point = Json::Value(Json::arrayValue);
+            point.append(coordinates.x);
+            point.append(coordinates.y);
+            return point;
+        }
+        std::cerr << "Failed to validate the coordinate at " << coordinates.x << "/" << coordinates.y << std::endl;
+        return Json::nullValue;
+    }
+
+    Json::Value make_point(const osmium::Location location) const {
+        if (location.valid()) {
+            Json::Value point = Json::Value(Json::arrayValue);
+            point.append(location.lon());
+            point.append(location.lat());
+            return point;
+        }
+        std::cerr << "Failed to validate the location at " << location.lon() << "/" << location.lat() << std::endl;
+        return Json::nullValue;
+    }
+
+    StreetTypeWrapper get_street_type(const osmium::TagList& tags) {
+        return StreetTypeWrapper{
+                true,  // TODO: determine whether a given street should be included
+                StreetType::PATH // TODO: select a valid street type based on the given tags
+        };
+    }
 
 public:
 
     Json::Value get_json_data() {
         Json::Value root;
-        root["uuid"] = "uuid";
+        root["uuid"] = this->world_uuid;
         root["bbox"] = "bbox";
         root["timestamp"] = std::chrono::duration_cast<std::chrono::seconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
         root["version"] = FILE_VERSION;
-        root["streets"] = "streets";
-        root["poi"] = "poi";
-        root["areas"] = "areas";
+        root["streets"] = this->streets;
+        root["poi"] = this->poi;
+        root["areas"] = this->areas;
         return root;
+    }
+
+    void way(const osmium::Way& way) {
+        if (!way.ends_have_same_id() && !way.ends_have_same_location()) {
+            StreetTypeWrapper street_type = get_street_type(way.tags());
+            if (!street_type.allowed) {
+                return;
+            }
+
+            Json::Value entry;
+            entry["type"] = static_cast<int>(street_type.type);
+            entry["oid"] = way.id();
+            Json::Value waypoints = Json::Value(Json::arrayValue);
+            for (auto& node: way.nodes()) {
+                waypoints.append(make_point(node.location()));
+            }
+            entry["points"] = waypoints;
+            this->streets.append(entry);
+        }
     }
 };
 
