@@ -24,6 +24,8 @@
 
 static const int FILE_VERSION = 1;
 static const int JSON_ENUM_OFFSET = 1;
+static const std::string DEFAULT_CONFIG_FILENAME = "config.json";
+
 
 using index_type = osmium::index::map::FlexMem<osmium::unsigned_object_id_type, osmium::Location>;
 using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
@@ -55,6 +57,7 @@ public:
 
 
 class WorldGenerator : public osmium::handler::Handler {
+    Json::Value config;
     Json::Value streets = Json::Value(Json::arrayValue);
     Json::Value poi = Json::Value(Json::arrayValue);
     Json::Value areas = Json::Value(Json::arrayValue);
@@ -79,6 +82,13 @@ class WorldGenerator : public osmium::handler::Handler {
 
     std::string generate_new_uuid() {
         return "00000000-0000-0000-0000-000000000000";  // TODO: actually generate version 4 UUIDs here
+    }
+
+    Json::Value load_config(std::string filename) {
+        Json::Value config;
+        std::ifstream config_stream(filename, std::ifstream::binary);
+        config_stream >> config;
+        return config;
     }
 
     Json::Value make_point(const osmium::geom::Coordinates& coordinates) const {
@@ -127,6 +137,14 @@ class WorldGenerator : public osmium::handler::Handler {
     }
 
 public:
+
+    WorldGenerator() {
+        this->config = load_config(DEFAULT_CONFIG_FILENAME);
+    }
+
+    WorldGenerator(std::string config_filename) {
+        this->config = load_config(config_filename);
+    }
 
     Json::Value get_json_data() {
         Json::Value root;
