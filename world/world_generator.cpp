@@ -22,6 +22,8 @@
 
 
 static const int FILE_VERSION = 1;
+static const int JSON_ENUM_OFFSET = 1;
+static const int MAX_SPAWNS = 8;
 
 using index_type = osmium::index::map::FlexMem<osmium::unsigned_object_id_type, osmium::Location>;
 using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
@@ -58,9 +60,21 @@ class WorldGenerator : public osmium::handler::Handler {
     Json::Value areas = Json::Value(Json::arrayValue);
     std::string world_uuid = generate_new_uuid();
 
-    struct StreetTypeWrapper {
+    struct POIWrapper {
+        bool allowed;
+        POIType type;
+        SpawnType spawns[MAX_SPAWNS];
+    };
+
+    struct StreetWrapper {
         bool allowed;
         StreetType type;
+    };
+
+    struct AreaWrapper {
+        bool allowed;
+        AreaType type;
+        SpawnType spawns[MAX_SPAWNS];
     };
 
     std::string generate_new_uuid() {
@@ -89,10 +103,26 @@ class WorldGenerator : public osmium::handler::Handler {
         return Json::nullValue;
     }
 
-    StreetTypeWrapper get_street_type(const osmium::TagList& tags) {
-        return StreetTypeWrapper{
+    POIWrapper get_poi_details(const osmium::TagList& tags) {
+        return POIWrapper{
+                true,  // TODO: determine whether a given point of interest should be included
+                POIType::NONE,  // TODO: select a valid POI type based on the given tags
+                {}  // TODO: determine a list of valid spawns for this POI
+        };
+    }
+
+    StreetWrapper get_street_details(const osmium::TagList& tags) {
+        return StreetWrapper{
                 true,  // TODO: determine whether a given street should be included
-                StreetType::PATH // TODO: select a valid street type based on the given tags
+                StreetType::PATH  // TODO: select a valid street type based on the given tags
+        };
+    }
+
+    AreaWrapper get_area_details(const osmium::TagList& tags) {
+        return AreaWrapper{
+                true,  // TODO: determine whether a given street should be included
+                AreaType::UNDEFINED,  // TODO: select a valid street type based on the given tags
+                {}  // TODO: determine a list of valid spawns for this area
         };
     }
 
@@ -113,13 +143,13 @@ public:
 
     void way(const osmium::Way& way) {
         if (!way.ends_have_same_id() && !way.ends_have_same_location()) {
-            StreetTypeWrapper street_type = get_street_type(way.tags());
-            if (!street_type.allowed) {
+            StreetWrapper street_details = get_street_details(way.tags());
+            if (!street_details.allowed) {
                 return;
             }
 
             Json::Value entry;
-            entry["type"] = static_cast<int>(street_type.type);
+            entry["type"] = static_cast<int>(street_details.type) + JSON_ENUM_OFFSET;
             entry["oid"] = way.id();
             Json::Value waypoints = Json::Value(Json::arrayValue);
             for (auto& node: way.nodes()) {
