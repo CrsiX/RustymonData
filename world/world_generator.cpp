@@ -63,6 +63,12 @@ class WorldGenerator : public osmium::handler::Handler {
     Json::Value areas = Json::Value(Json::arrayValue);
     std::string world_uuid = generate_new_uuid();
 
+    struct CheckResult {
+        bool allowed;
+        int type;
+        Json::Value spawns;  // may be null for streets
+    };
+
     struct POIWrapper {
         bool allowed;
         POIType type;
@@ -117,10 +123,10 @@ class WorldGenerator : public osmium::handler::Handler {
         return Json::nullValue;
     }
 
-    POIWrapper get_poi_details(const osmium::TagList& tags) {
-        for (Json::Value item: this->config["poi"]) {
+    CheckResult get_details(const osmium::TagList& tags, Json::Value check_items) {
+        for (Json::Value item: check_items) {
             bool allowed = true;
-            POIType poi_type = static_cast<POIType>(item["type"].asInt() - JSON_ENUM_OFFSET);
+            int type = item["type"].asInt();
 
             Json::Value forbidden = item["forbidden"];
             for (std::string forbidden_key: forbidden.getMemberNames()) {
@@ -148,7 +154,7 @@ class WorldGenerator : public osmium::handler::Handler {
                     break;
                 }
                 Json::Value required_values = required[required_key.c_str()];
-                bool found = (required_values.size() == 0);  // TODO: does .size() as expected on arrays?
+                bool found = (required_values.size() == 0);
                 for (Json::Value required_value: required_values) {
                     if (strcmp(tags.get_value_by_key(required_key.c_str()), required_value.asCString()) == 0) {
                         found = true;
@@ -161,27 +167,35 @@ class WorldGenerator : public osmium::handler::Handler {
             }
 
             if (allowed) {
-                std::cout << "returning a POIWrapper with " << item["spawns"] << std::endl;
-                return POIWrapper{true, poi_type, item["spawns"]};
+                return CheckResult{allowed, type, item["spawns"]};
             }
         }
 
-        return POIWrapper{false, POIType::NONE, Json::nullValue};
+        return CheckResult{false, -1, Json::nullValue};
+    }
+
+    POIWrapper get_poi_details(const osmium::TagList& tags) {
+        CheckResult result = get_details(tags, this->config["poi"]);
+        POIType poi_type = static_cast<POIType>(result.type - JSON_ENUM_OFFSET);
+        if (result.spawns == Json::nullValue) {
+            result.spawns = Json::Value(Json::arrayValue);
+        }
+        return POIWrapper{result.allowed, poi_type, result.spawns};
     }
 
     StreetWrapper get_street_details(const osmium::TagList& tags) {
-        return StreetWrapper{
-                true,  // TODO: determine whether a given street should be included
-                StreetType::PATH  // TODO: select a valid street type based on the given tags
-        };
+        CheckResult result = get_details(tags, this->config["streets"]);
+        StreetType street_type = static_cast<StreetType>(result.type - JSON_ENUM_OFFSET);
+        return StreetWrapper{result.allowed, street_type};
     }
 
     AreaWrapper get_area_details(const osmium::TagList& tags) {
-        return AreaWrapper{
-                true,  // TODO: determine whether a given street should be included
-                AreaType::UNDEFINED,  // TODO: select a valid street type based on the given tags
-                Json::Value(Json::arrayValue)  // TODO: determine a list of valid spawns for this area
-        };
+        CheckResult result = get_details(tags, this->config["areas"]);
+        AreaType area_type = static_cast<AreaType>(result.type - JSON_ENUM_OFFSET);
+        if (result.spawns == Json::nullValue) {
+            result.spawns = Json::Value(Json::arrayValue);
+        }
+        return AreaWrapper{result.allowed, area_type, result.spawns};
     }
 
 public:
