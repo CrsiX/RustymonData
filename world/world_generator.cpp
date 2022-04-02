@@ -87,6 +87,10 @@ class WorldGenerator : public osmium::handler::Handler {
     Json::Value load_config(std::string filename) {
         Json::Value config;
         std::ifstream config_stream(filename, std::ifstream::binary);
+        if (!config_stream.is_open()) {
+            std::cerr << "Configuration file " << filename << " not found. Exiting." << std::endl;
+            exit(1);
+        }
         config_stream >> config;
         return config;
     }
@@ -121,6 +125,10 @@ class WorldGenerator : public osmium::handler::Handler {
             Json::Value forbidden = item["forbidden"];
             for (std::string forbidden_key: forbidden.getMemberNames()) {
                 if (tags.has_key(forbidden_key.c_str())) {
+                    if (forbidden[forbidden_key.c_str()].size() == 0) {
+                        allowed = false;
+                        break;
+                    }
                     for (Json::Value forbidden_value: forbidden[forbidden_key.c_str()]) {
                         if (forbidden_value.asString().compare(tags.get_value_by_key(forbidden_key.c_str())) == 0) {
                             allowed = false;
@@ -142,7 +150,7 @@ class WorldGenerator : public osmium::handler::Handler {
                 Json::Value required_values = required[required_key.c_str()];
                 bool found = (required_values.size() == 0);  // TODO: does .size() as expected on arrays?
                 for (Json::Value required_value: required_values) {
-                    if (strcmp(tags.get_value_by_key(required_key.c_str()), required_value.asCString()) != 0) {
+                    if (strcmp(tags.get_value_by_key(required_key.c_str()), required_value.asCString()) == 0) {
                         found = true;
                     }
                 }
@@ -285,7 +293,7 @@ public:
 };
 
 
-void generate_world(const char *in_file, const char *out_file, const osmium::Box bbox) {
+void generate_world(std::string in_file, std::string out_file, std::string config_file) {
     const osmium::io::File input_file{in_file};
 
     osmium::area::Assembler::config_type assembler_config;
@@ -299,7 +307,7 @@ void generate_world(const char *in_file, const char *out_file, const osmium::Box
     location_handler_type location_handler{index};
     location_handler.ignore_errors();
 
-    WorldGenerator data_handler;
+    WorldGenerator data_handler = WorldGenerator(config_file);
     osmium::io::Reader reader{input_file, osmium::io::read_meta::no};
 
     osmium::apply(reader, location_handler, data_handler,
@@ -334,12 +342,14 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (argc != 4) {
-        std::cerr << "Usage: " << argv[0] << " <InputFile> <OutputFile> <BoundingBox>" << std::endl;
+    std::string config_file = DEFAULT_CONFIG_FILENAME;
+    if (argc == 4) {
+        config_file = argv[3];
+    } else if (argc != 3) {
+        std::cerr << "Usage: " << argv[0] << " <InputFile> <OutputFile> [<ConfigFile>]" << std::endl;
         return 2;
     }
 
-    osmium::Box bbox;
-    generate_world(argv[1], argv[2], bbox);
+    generate_world(argv[1], argv[2], config_file);
     return 0;
 }
