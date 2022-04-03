@@ -16,8 +16,7 @@
 #include <osmium/osm/way.hpp>
 #include <osmium/relations/relations_manager.hpp>
 
-#include "poke_world_enums.hpp"
-#include "poke_world_fields.hpp"
+#include "rustymon_enums.hpp"
 
 
 static const int FILE_VERSION = 1;
