@@ -58,6 +58,7 @@ public:
 
 
 class WorldGenerator : public osmium::handler::Handler {
+    osmium::Box bbox;
     Json::Value config;
     Json::Value streets = Json::Value(Json::arrayValue);
     Json::Value poi = Json::Value(Json::arrayValue);
@@ -199,14 +200,31 @@ class WorldGenerator : public osmium::handler::Handler {
         return AreaWrapper{result.allowed, area_type, result.spawns};
     }
 
+    void check_valid_bbox() {
+        if (!this->bbox.valid()) {
+            std::cerr << "Invalid bounding box " << this->bbox << "!" << std::endl;
+            exit(1);
+        }
+    }
+
 public:
 
     WorldGenerator() {
+        this->bbox = osmium::Box(-180, -90, 180, 90);
         this->config = load_config(DEFAULT_CONFIG_FILENAME);
+        check_valid_bbox();
     }
 
-    WorldGenerator(std::string config_filename) {
+    WorldGenerator(osmium::Box bbox) {
+        this->bbox = bbox;
+        this->config = load_config(DEFAULT_CONFIG_FILENAME);
+        check_valid_bbox();
+    }
+
+    WorldGenerator(osmium::Box bbox, std::string config_filename) {
+        this->bbox = bbox;
         this->config = load_config(config_filename);
+        check_valid_bbox();
     }
 
     Json::Value get_json_data() {
@@ -322,7 +340,7 @@ void generate_world(std::string in_file, std::string out_file, osmium::Box bbox,
     location_handler_type location_handler{index};
     location_handler.ignore_errors();
 
-    WorldGenerator data_handler = WorldGenerator(config_file);
+    WorldGenerator data_handler = WorldGenerator(bbox, config_file);
     osmium::io::Reader reader{input_file, osmium::io::read_meta::no};
 
     osmium::apply(reader, location_handler, data_handler,
