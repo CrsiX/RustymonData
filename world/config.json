@@ -1,0 +1,73 @@
+{
+  "poi": [
+
+  ],
+  "streets": [
+    {
+      "type": 1,
+      "required": {
+        "highway": ["motorway", "motorway_link"]
+      },
+      "forbidden": {}
+    },
+    {
+      "type": 2,
+      "required": {
+        "highway": ["trunk", "trunk_link", "primary", "primary_link", "secondary", "secondary_link", "tertiary", "tertiary_link", "road", "unclassified", "living_street", "raceway"]
+      },
+      "forbidden": {
+        "footway": ["sidewalk", "crossing"]
+      }
+    },
+    {
+      "type": 3,
+      "required": {
+        "highway": ["track", "footway", "pedestrian", "bridleway", "steps", "path"]
+      },
+      "forbidden": {
+        "footway": ["sidewalk", "crossing"]
+      }
+    },
+    {
+      "type": 3,
+      "required": {
+        "highway": ["cycleway"]
+      },
+      "forbidden": {
+        "foot": ["no", "private"]
+      }
+    },
+    {
+      "type": 4,
+      "required": {
+        "railway": []
+      },
+      "forbidden": {
+        "railway": ["abandoned", "construction", "disused", "miniature"],
+        "embedded_rails": [],
+        "tunnel": []
+      }
+    },
+    {
+      "type": 5,
+      "required": {
+        "waterway": []
+      },
+      "forbidden": {
+        "type": ["multipolygon", "route"],
+        "waterway": ["pressurized", "drain"]
+      }
+    },
+    {
+      "type": 5,
+      "required": {
+        "natural": ["water"],
+        "water": ["river"]
+      },
+      "forbidden": {}
+    }
+  ],
+  "areas": [
+
+  ]
+}
