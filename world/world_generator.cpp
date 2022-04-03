@@ -49,7 +49,12 @@ class WorldGenerator : public osmium::handler::Handler {
             bool allowed = true;
             int type = item["type"].asInt();
 
+            Json::Value required = item["required"];
             Json::Value forbidden = item["forbidden"];
+            if (required.size() == 0 && forbidden.size() == 0) {
+                continue;
+            }
+
             for (std::string forbidden_key: forbidden.getMemberNames()) {
                 if (tags.has_key(forbidden_key.c_str())) {
                     if (forbidden[forbidden_key.c_str()].size() == 0) {
@@ -68,7 +73,6 @@ class WorldGenerator : public osmium::handler::Handler {
                 continue;
             }
 
-            Json::Value required = item["required"];
             for (std::string required_key: required.getMemberNames()) {
                 if (!tags.has_key(required_key.c_str())) {
                     allowed = false;
@@ -266,29 +270,7 @@ void generate_world(std::string in_file, std::string out_file, osmium::Box bbox,
     std::ofstream output_file_stream(out_file);
     writer->write(data_handler.get_json_data(), &output_file_stream);
     output_file_stream.close();
-}
 
-
-osmium::Box get_bbox(std::string spec) {
-    std::stringstream spec_stream(spec);
-    std::string segment;
-    std::vector<double> bounding_box_values;
-
-    while (std::getline(spec_stream, segment, BBOX_SPLIT_CHAR)) {
-        bounding_box_values.push_back(std::stod(segment));
-    }
-    if (bounding_box_values.size() != 4) {
-        std::cerr << "The bounding box has to contain exactly four values for minX, minY, maxX and maxY." << std::endl;
-        exit(2);
-    }
-
-    osmium::Box bbox(
-            bounding_box_values.at(0),
-            bounding_box_values.at(1),
-            bounding_box_values.at(2),
-            bounding_box_values.at(3)
-    );
-    return bbox;
 }
 
 
