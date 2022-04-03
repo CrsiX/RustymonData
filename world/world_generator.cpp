@@ -200,9 +200,15 @@ public:
     }
 
     Json::Value get_json_data() {
+        Json::Value bbox_json = Json::Value(Json::arrayValue);
+        bbox_json[0] = this->bbox.bottom_left().lon();
+        bbox_json[1] = this->bbox.bottom_left().lat();
+        bbox_json[2] = this->bbox.top_right().lon();
+        bbox_json[3] = this->bbox.top_right().lat();
+
         Json::Value root;
         root["uuid"] = this->world_uuid;
-        root["bbox"] = "bbox";
+        root["bbox"] = bbox_json;
         root["timestamp"] = std::chrono::duration_cast<std::chrono::seconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
         root["version"] = FILE_VERSION;
@@ -256,7 +262,7 @@ public:
 
             int outer_rings = 0;
             int inner_rings = 0;
-            for (const auto& item: area) {
+            for (const auto &item: area) {
                 if (item.type() == osmium::item_type::outer_ring) {
                     outer_rings++;
                 } else if (item.type() == osmium::item_type::inner_ring) {
@@ -274,11 +280,11 @@ public:
             }
 
             Json::Value waypoints = Json::Value(Json::arrayValue);
-            for (const auto& item: area) {
+            for (const auto &item: area) {
                 if (item.type() == osmium::item_type::outer_ring) {
-                    const auto& ring = static_cast<const osmium::OuterRing&>(item);
+                    const auto &ring = static_cast<const osmium::OuterRing&>(item);
                     osmium::Location last_location;
-                    for (const osmium::NodeRef& node : ring) {
+                    for (const osmium::NodeRef &node: ring) {
                         if (last_location != node.location()) {
                             last_location = node.location();
                             waypoints.append(make_point(last_location));
