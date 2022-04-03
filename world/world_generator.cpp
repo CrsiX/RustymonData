@@ -9,10 +9,8 @@
 #include <osmium/area/assembler.hpp>
 #include <osmium/area/multipolygon_manager.hpp>
 #include <osmium/geom/factory.hpp>
-#include <osmium/geom/geojson.hpp>
 #include <osmium/handler/node_locations_for_ways.hpp>
 #include <osmium/index/map/flex_mem.hpp>
-#include <osmium/io/any_input.hpp>
 #include <osmium/osm/area.hpp>
 #include <osmium/osm/node.hpp>
 #include <osmium/osm/way.hpp>
@@ -30,31 +28,6 @@ static const std::string DEFAULT_CONFIG_FILENAME = "config.json";
 
 using index_type = osmium::index::map::FlexMem<osmium::unsigned_object_id_type, osmium::Location>;
 using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
-
-
-class CounterHandler : public osmium::handler::Handler {
-public:
-    int nodes = 0;
-    int ways = 0;
-    int areas = 0;
-    int relations = 0;
-
-    void node(const osmium::Node& node) {
-        this->nodes++;
-    }
-
-    void way(const osmium::Way& way) {
-        this->ways++;
-    }
-
-    void area(const osmium::Area& area) {
-        this->areas++;
-    }
-
-    void relation(const osmium::Relation& relation) {
-        this->relations++;
-    }
-};
 
 
 class WorldGenerator : public osmium::handler::Handler {
