@@ -24,6 +24,7 @@
 
 static const int FILE_VERSION = 1;
 static const int JSON_ENUM_OFFSET = 1;
+static const char BBOX_SPLIT_CHAR = '/';
 static const std::string DEFAULT_CONFIG_FILENAME = "config.json";
 
 
@@ -307,7 +308,7 @@ public:
 };
 
 
-void generate_world(std::string in_file, std::string out_file, std::string config_file) {
+void generate_world(std::string in_file, std::string out_file, osmium::Box bbox, std::string config_file) {
     const osmium::io::File input_file{in_file};
 
     osmium::area::Assembler::config_type assembler_config;
@@ -343,6 +344,29 @@ void generate_world(std::string in_file, std::string out_file, std::string confi
 }
 
 
+osmium::Box get_bbox(std::string spec) {
+    std::stringstream spec_stream(spec);
+    std::string segment;
+    std::vector<double> bounding_box_values;
+
+    while (std::getline(spec_stream, segment, BBOX_SPLIT_CHAR)) {
+        bounding_box_values.push_back(std::stod(segment));
+    }
+    if (bounding_box_values.size() != 4) {
+        std::cerr << "The bounding box has to contain exactly four values for minX, minY, maxX and maxY." << std::endl;
+        exit(2);
+    }
+
+    osmium::Box bbox(
+            bounding_box_values.at(0),
+            bounding_box_values.at(1),
+            bounding_box_values.at(2),
+            bounding_box_values.at(3)
+    );
+    return bbox;
+}
+
+
 void print_help() {
     std::cout << "Help is not implemented yet." << std::endl;
 }
@@ -357,13 +381,15 @@ int main(int argc, char *argv[]) {
     }
 
     std::string config_file = DEFAULT_CONFIG_FILENAME;
-    if (argc == 4) {
-        config_file = argv[3];
-    } else if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << " <InputFile> <OutputFile> [<ConfigFile>]" << std::endl;
+    if (argc == 5) {
+        config_file = argv[4];
+    } else if (argc != 4) {
+        std::cerr << "Usage: " << argv[0] << " <InputFile> <OutputFile> <BoundingBox> [<ConfigFile>]" << std::endl;
         return 2;
     }
 
-    generate_world(argv[1], argv[2], config_file);
+    osmium::Box bbox = get_bbox(argv[3]);
+    std::cout << "Using bounding box " << bbox << "." << std::endl;
+    generate_world(argv[1], argv[2], bbox, config_file);
     return 0;
 }
