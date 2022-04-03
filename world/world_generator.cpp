@@ -8,7 +8,7 @@
 #include <osmium/visitor.hpp>
 #include <osmium/area/assembler.hpp>
 #include <osmium/area/multipolygon_manager.hpp>
-#include <osmium/geom/factory.hpp>
+#include <osmium/geom/coordinates.hpp>
 #include <osmium/handler/node_locations_for_ways.hpp>
 #include <osmium/index/map/flex_mem.hpp>
 #include <osmium/io/any_input.hpp>
@@ -22,7 +22,6 @@
 
 
 static const int FILE_VERSION = 1;
-static const int JSON_ENUM_OFFSET = 1;
 static const char BBOX_SPLIT_CHAR = '/';
 static const std::string DEFAULT_CONFIG_FILENAME = "config.json";
 
@@ -182,7 +181,7 @@ public:
 
     void area(const osmium::Area &area) {
         if (area.visible()) {
-            CheckResult result = get_details(tags, this->config["areas"]);
+            CheckResult result = get_details(area.tags(), this->config["areas"]);
             if (!result.allowed) {
                 return;
             }
