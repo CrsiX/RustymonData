@@ -4,7 +4,7 @@
 
 See the `world` directory.
 
-### File format
+### Output file format
 
 ```json5
 {
@@ -64,6 +64,89 @@ See the `world` directory.
             "oid": 12345
         }
     ]
+}
+```
+
+### Config file format
+
+```json5
+{
+  // Definition for Points Of Interest (POI)
+  "poi": [
+    {
+      // POI type (integer of the 1-indexed enum representing different types of POI)
+      "type": 2,
+      // List of spawns at that POI (integer of the 1-indexed enum representing different spawn types), may be empty
+      "spawns": [
+        1,
+        2,
+        3
+      ],
+      // List of required OSM attributes, i.e. the node will be skipped if not present
+      // (if the key is present and the value list is empty, the node is accepted; otherwise any value must be present)
+      "required": {
+        "key1": [
+          "value1",
+          "value2"
+        ]
+      },
+      // List of forbidden OSM attributes, i.e. the node will be skipped if present
+      // (if the key is present and the value list is empty, the node is rejected; otherwise any value must be present)
+      "forbidden": {
+        "key2": [
+          "value3",
+          "value4",
+          "value5",
+          "value6"
+        ]
+      }
+    }
+  ],
+  // Definition for Streets (includes rivers and railways), see POI above for details (key 'spawns' is invalid here)
+  "streets": [
+    {
+      "type": 3,
+      "required": {
+        "key1": [
+          "value1",
+          "value2"
+        ]
+      },
+      "forbidden": {
+        "key2": [
+          "value3",
+          "value4",
+          "value5",
+          "value6"
+        ]
+      }
+    }
+  ],
+  // Definition for Areas, see POI above for details
+  "areas": [
+    {
+      "type": 2,
+      "spawns": [
+        1,
+        2,
+        3
+      ],
+      "required": {
+        "key1": [
+          "value1",
+          "value2"
+        ]
+      },
+      "forbidden": {
+        "key2": [
+          "value3",
+          "value4",
+          "value5",
+          "value6"
+        ]
+      }
+    }
+  ]
 }
 ```
 
