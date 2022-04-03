@@ -11,6 +11,7 @@
 #include <osmium/geom/factory.hpp>
 #include <osmium/handler/node_locations_for_ways.hpp>
 #include <osmium/index/map/flex_mem.hpp>
+#include <osmium/io/any_input.hpp>
 #include <osmium/osm/area.hpp>
 #include <osmium/osm/node.hpp>
 #include <osmium/osm/way.hpp>
@@ -75,7 +76,7 @@ class WorldGenerator : public osmium::handler::Handler {
         return config;
     }
 
-    Json::Value make_point(const osmium::geom::Coordinates& coordinates) const {
+    Json::Value make_point(const osmium::geom::Coordinates &coordinates) const {
         if (coordinates.valid()) {
             Json::Value point = Json::Value(Json::arrayValue);
             point.append(coordinates.x);
@@ -97,7 +98,7 @@ class WorldGenerator : public osmium::handler::Handler {
         return Json::nullValue;
     }
 
-    CheckResult get_details(const osmium::TagList& tags, Json::Value check_items) {
+    CheckResult get_details(const osmium::TagList &tags, Json::Value check_items) {
         for (Json::Value item: check_items) {
             bool allowed = true;
             int type = item["type"].asInt();
@@ -148,7 +149,7 @@ class WorldGenerator : public osmium::handler::Handler {
         return CheckResult{false, -1, Json::nullValue};
     }
 
-    POIWrapper get_poi_details(const osmium::TagList& tags) {
+    POIWrapper get_poi_details(const osmium::TagList &tags) {
         CheckResult result = get_details(tags, this->config["poi"]);
         POIType poi_type = static_cast<POIType>(result.type - JSON_ENUM_OFFSET);
         if (result.spawns == Json::nullValue) {
@@ -157,13 +158,13 @@ class WorldGenerator : public osmium::handler::Handler {
         return POIWrapper{result.allowed, poi_type, result.spawns};
     }
 
-    StreetWrapper get_street_details(const osmium::TagList& tags) {
+    StreetWrapper get_street_details(const osmium::TagList &tags) {
         CheckResult result = get_details(tags, this->config["streets"]);
         StreetType street_type = static_cast<StreetType>(result.type - JSON_ENUM_OFFSET);
         return StreetWrapper{result.allowed, street_type};
     }
 
-    AreaWrapper get_area_details(const osmium::TagList& tags) {
+    AreaWrapper get_area_details(const osmium::TagList &tags) {
         CheckResult result = get_details(tags, this->config["areas"]);
         AreaType area_type = static_cast<AreaType>(result.type - JSON_ENUM_OFFSET);
         if (result.spawns == Json::nullValue) {
@@ -218,7 +219,7 @@ public:
         return root;
     }
 
-    void node(const osmium::Node& node) {
+    void node(const osmium::Node &node) {
         if (node.visible()) {
             POIWrapper poi_details = get_poi_details(node.tags());
             if (!poi_details.allowed) {
@@ -234,7 +235,7 @@ public:
         }
     }
 
-    void way(const osmium::Way& way) {
+    void way(const osmium::Way &way) {
         if (!way.ends_have_same_id() && !way.ends_have_same_location()) {
             StreetWrapper street_details = get_street_details(way.tags());
             if (!street_details.allowed) {
@@ -245,7 +246,7 @@ public:
             entry["type"] = static_cast<int>(street_details.type) + JSON_ENUM_OFFSET;
             entry["oid"] = way.id();
             Json::Value waypoints = Json::Value(Json::arrayValue);
-            for (auto& node: way.nodes()) {
+            for (auto &node: way.nodes()) {
                 waypoints.append(make_point(node.location()));
             }
             entry["points"] = waypoints;
@@ -253,7 +254,7 @@ public:
         }
     }
 
-    void area(const osmium::Area& area) {
+    void area(const osmium::Area &area) {
         if (area.visible()) {
             AreaWrapper area_details = get_area_details(area.tags());
             if (!area_details.allowed) {
