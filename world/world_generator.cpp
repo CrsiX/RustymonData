@@ -18,6 +18,7 @@
 #include <osmium/relations/relations_manager.hpp>
 
 #include "rustymon_enums.hpp"
+#include "world_generator_helpers.hpp"
 
 
 static const int FILE_VERSION = 1;
@@ -36,67 +37,13 @@ class WorldGenerator : public osmium::handler::Handler {
     Json::Value streets = Json::Value(Json::arrayValue);
     Json::Value poi = Json::Value(Json::arrayValue);
     Json::Value areas = Json::Value(Json::arrayValue);
-    std::string world_uuid = generate_new_uuid();
+    std::string world_uuid = generate_new_uuid4();
 
     struct CheckResult {
         bool allowed;
         int type;
         Json::Value spawns;  // may be null for streets
     };
-
-    struct POIWrapper {
-        bool allowed;
-        POIType type;
-        Json::Value spawns;
-    };
-
-    struct StreetWrapper {
-        bool allowed;
-        StreetType type;
-    };
-
-    struct AreaWrapper {
-        bool allowed;
-        AreaType type;
-        Json::Value spawns;
-    };
-
-    std::string generate_new_uuid() {
-        return "00000000-0000-0000-0000-000000000000";  // TODO: actually generate version 4 UUIDs here
-    }
-
-    Json::Value load_config(std::string filename) {
-        Json::Value config;
-        std::ifstream config_stream(filename, std::ifstream::binary);
-        if (!config_stream.is_open()) {
-            std::cerr << "Configuration file " << filename << " not found. Exiting." << std::endl;
-            exit(1);
-        }
-        config_stream >> config;
-        return config;
-    }
-
-    Json::Value make_point(const osmium::geom::Coordinates &coordinates) const {
-        if (coordinates.valid()) {
-            Json::Value point = Json::Value(Json::arrayValue);
-            point.append(coordinates.x);
-            point.append(coordinates.y);
-            return point;
-        }
-        std::cerr << "Failed to validate the coordinate at " << coordinates.x << "/" << coordinates.y << std::endl;
-        return Json::nullValue;
-    }
-
-    Json::Value make_point(const osmium::Location location) const {
-        if (location.valid()) {
-            Json::Value point = Json::Value(Json::arrayValue);
-            point.append(location.lon());
-            point.append(location.lat());
-            return point;
-        }
-        std::cerr << "Failed to validate the location at " << location.lon() << "/" << location.lat() << std::endl;
-        return Json::nullValue;
-    }
 
     CheckResult get_details(const osmium::TagList &tags, Json::Value check_items) {
         for (Json::Value item: check_items) {
@@ -149,30 +96,6 @@ class WorldGenerator : public osmium::handler::Handler {
         return CheckResult{false, -1, Json::nullValue};
     }
 
-    POIWrapper get_poi_details(const osmium::TagList &tags) {
-        CheckResult result = get_details(tags, this->config["poi"]);
-        POIType poi_type = static_cast<POIType>(result.type - JSON_ENUM_OFFSET);
-        if (result.spawns == Json::nullValue) {
-            result.spawns = Json::Value(Json::arrayValue);
-        }
-        return POIWrapper{result.allowed, poi_type, result.spawns};
-    }
-
-    StreetWrapper get_street_details(const osmium::TagList &tags) {
-        CheckResult result = get_details(tags, this->config["streets"]);
-        StreetType street_type = static_cast<StreetType>(result.type - JSON_ENUM_OFFSET);
-        return StreetWrapper{result.allowed, street_type};
-    }
-
-    AreaWrapper get_area_details(const osmium::TagList &tags) {
-        CheckResult result = get_details(tags, this->config["areas"]);
-        AreaType area_type = static_cast<AreaType>(result.type - JSON_ENUM_OFFSET);
-        if (result.spawns == Json::nullValue) {
-            result.spawns = Json::Value(Json::arrayValue);
-        }
-        return AreaWrapper{result.allowed, area_type, result.spawns};
-    }
-
     void check_valid_bbox() {
         if (!this->bbox.valid()) {
             std::cerr << "Invalid bounding box " << this->bbox << "!" << std::endl;
@@ -221,29 +144,32 @@ public:
 
     void node(const osmium::Node &node) {
         if (node.visible()) {
-            POIWrapper poi_details = get_poi_details(node.tags());
-            if (!poi_details.allowed) {
+            CheckResult result = get_details(node.tags(), this->config["poi"]);
+            if (!result.allowed) {
                 return;
+            }
+            if (result.spawns == Json::nullValue) {
+                result.spawns = Json::Value(Json::arrayValue);
             }
 
             Json::Value entry;
             entry["point"] = make_point(node.location());
             entry["oid"] = node.id();
-            entry["type"] = static_cast<int>(poi_details.type) + JSON_ENUM_OFFSET;
-            entry["spawns"] = poi_details.spawns;
+            entry["type"] = result.type;
+            entry["spawns"] = result.spawns;
             this->poi.append(entry);
         }
     }
 
     void way(const osmium::Way &way) {
         if (!way.ends_have_same_id() && !way.ends_have_same_location()) {
-            StreetWrapper street_details = get_street_details(way.tags());
-            if (!street_details.allowed) {
+            CheckResult result = get_details(way.tags(), this->config["streets"]);
+            if (!result.allowed) {
                 return;
             }
 
             Json::Value entry;
-            entry["type"] = static_cast<int>(street_details.type) + JSON_ENUM_OFFSET;
+            entry["type"] = result.type;
             entry["oid"] = way.id();
             Json::Value waypoints = Json::Value(Json::arrayValue);
             for (auto &node: way.nodes()) {
@@ -256,9 +182,12 @@ public:
 
     void area(const osmium::Area &area) {
         if (area.visible()) {
-            AreaWrapper area_details = get_area_details(area.tags());
-            if (!area_details.allowed) {
+            CheckResult result = get_details(tags, this->config["areas"]);
+            if (!result.allowed) {
                 return;
+            }
+            if (result.spawns == Json::nullValue) {
+                result.spawns = Json::Value(Json::arrayValue);
             }
 
             int outer_rings = 0;
@@ -295,10 +224,10 @@ public:
             }
 
             Json::Value entry;
-            entry["type"] = static_cast<int>(area_details.type) + JSON_ENUM_OFFSET;
+            entry["type"] = result.type;
             entry["oid"] = area.id();
             entry["points"] = waypoints;
-            entry["spawns"] = area_details.spawns;
+            entry["spawns"] = result.spawns;
             this->areas.append(entry);
         }
     }
