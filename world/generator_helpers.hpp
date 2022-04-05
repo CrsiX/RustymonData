@@ -39,7 +39,12 @@ namespace rustymon {
         std::vector<double> bounding_box_values;
 
         while (std::getline(spec_stream, segment, BBOX_SPLIT_CHAR)) {
-            bounding_box_values.push_back(std::stod(segment));
+            try {
+                bounding_box_values.push_back(std::stod(segment));
+            } catch (std::invalid_argument) {
+                std::cerr << "The value " << segment << " doesn't seem to be a floating point value." << std::endl;
+                exit(2);
+            }
         }
         if (bounding_box_values.size() != 4) {
             std::cerr << "The bounding box has to contain exactly four values for minX, minY, maxX and maxY."

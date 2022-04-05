@@ -80,16 +80,29 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    std::string config_file = rustymon::DEFAULT_CONFIG_FILENAME;
-    if (argc == 5) {
-        config_file = argv[4];
-    } else if (argc != 4) {
-        std::cerr << "Usage: " << argv[0] << " <InputFile> <OutputFile> <BoundingBox> [<ConfigFile>]" << std::endl;
+    std::string generic_usage = "Usage: " + std::string(argv[0]) + " {http,file} [Options...]";
+    if (argc < 2) {
+        std::cerr << generic_usage << std::endl;
+        return 2;
+    } else if (strcmp(argv[1], "http") == 0) {
+        std::cout << "HTTP mode is not implemented yet";
+        return 0;
+    } else if (strcmp(argv[1], "file") == 0) {
+        std::string usage = "Usage: " + std::string(argv[0]) + " file <InputFile> <OutputFile> <BoundingBox> [<ConfigFile>]";
+        std::string config_file = rustymon::DEFAULT_CONFIG_FILENAME;
+        if (argc == 6) {
+            config_file = argv[5];
+        } else if (argc != 5) {
+            std::cerr << usage << std::endl;
+            return 2;
+        }
+
+        osmium::Box bbox = rustymon::get_bbox(argv[4]);
+        std::cout << "Using bounding box " << bbox << "." << std::endl;
+        rustymon::generate_world(argv[2], argv[3], bbox, config_file);
+        return 0;
+    } else {
+        std::cerr << generic_usage << std::endl;
         return 2;
     }
-
-    osmium::Box bbox = rustymon::get_bbox(argv[3]);
-    std::cout << "Using bounding box " << bbox << "." << std::endl;
-    rustymon::generate_world(argv[1], argv[2], bbox, config_file);
-    return 0;
 }
