@@ -17,7 +17,7 @@ FetchContent_Declare(
         GIT_TAG 21f42cf882d0b7e5ae9e3434574fc47e187728de)
 FetchContent_MakeAvailable(cpr)
 
-pkg_search_module(JSON_CPP json-cpp)
+pkg_search_module(JSON_CPP jsoncpp)
 find_package(jsoncpp REQUIRED)
 
 add_executable(world_generator world_generator.cpp)
