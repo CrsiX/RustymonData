@@ -8,8 +8,6 @@ See the `world` directory.
 
 ```json5
 {
-    // Identifying the file via UUID
-    "uuid": "e8801bf4-83ea-4576-9486-d078e24723a9",
     // Bounding box used while creating the file
     "bbox": [1.4, -7.3, 1.6, -7.1],
     // File creation timestamp
