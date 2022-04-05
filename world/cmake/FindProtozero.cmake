@@ -1,0 +1,1 @@
+../../libosmium/cmake/FindProtozero.cmake
