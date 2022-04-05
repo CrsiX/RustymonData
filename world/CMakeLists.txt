@@ -17,9 +17,6 @@ FetchContent_Declare(
         GIT_TAG 21f42cf882d0b7e5ae9e3434574fc47e187728de)
 FetchContent_MakeAvailable(cpr)
 
-pkg_search_module(JSON_CPP jsoncpp)
-find_package(jsoncpp REQUIRED)
-
 add_executable(world_generator world_generator.cpp)
 target_link_libraries(world_generator
         PRIVATE cpr::cpr
@@ -27,4 +24,4 @@ target_link_libraries(world_generator
         z
         expat
         bz2
-        ${JSON_CPP_LINK_LIBRARIES})
+        jsoncpp)
