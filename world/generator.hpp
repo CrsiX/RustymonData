@@ -6,7 +6,6 @@ namespace rustymon {
         Json::Value streets = Json::Value(Json::arrayValue);
         Json::Value poi = Json::Value(Json::arrayValue);
         Json::Value areas = Json::Value(Json::arrayValue);
-        std::string world_uuid = generate_new_uuid4();
 
         struct CheckResult {
             bool allowed;
@@ -104,7 +103,6 @@ namespace rustymon {
             bbox_json[3] = this->bbox.top_right().lat();
 
             Json::Value root;
-            root["uuid"] = this->world_uuid;
             root["bbox"] = bbox_json;
             root["timestamp"] = std::chrono::duration_cast<std::chrono::seconds>(
                     std::chrono::system_clock::now().time_since_epoch()).count();

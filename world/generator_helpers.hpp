@@ -11,12 +11,6 @@ namespace rustymon {
         return config;
     }
 
-
-    std::string generate_new_uuid4() {
-        return "00000000-0000-0000-0000-000000000000";  // TODO: actually generate version 4 UUIDs here
-    }
-
-
     Json::Value make_point(const osmium::geom::Coordinates &coordinates) {
         if (coordinates.valid()) {
             Json::Value point = Json::Value(Json::arrayValue);
@@ -27,7 +21,6 @@ namespace rustymon {
         std::cerr << "Failed to validate the coordinate at " << coordinates.x << "/" << coordinates.y << std::endl;
         return Json::nullValue;
     }
-
 
     Json::Value make_point(const osmium::Location location) {
         if (location.valid()) {
@@ -40,9 +33,8 @@ namespace rustymon {
         return Json::nullValue;
     }
 
-
     osmium::Box get_bbox(std::string spec) {
-        std::stringstream spec_stream(spec);
+        std::stringstream spec_stream = std::stringstream(spec);
         std::string segment;
         std::vector<double> bounding_box_values;
 

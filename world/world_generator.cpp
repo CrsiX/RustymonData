@@ -19,14 +19,14 @@
 
 #include "rustymon_constants.hpp"
 #include "rustymon_enums.hpp"
-#include "world_generator_helpers.hpp"
-#include "world_generator_class.hpp"
+#include "generator_helpers.hpp"
+#include "generator.hpp"
 
 
 namespace rustymon {
+
     using index_type = osmium::index::map::FlexMem<osmium::unsigned_object_id_type, osmium::Location>;
     using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
-
 
     void generate_world(std::string in_file, std::string out_file, osmium::Box bbox, std::string config_file) {
         const osmium::io::File input_file{in_file};
@@ -57,7 +57,7 @@ namespace rustymon {
         builder["indentation"] = "  ";
         builder["enableYAMLCompatibility"] = true;
 
-        std::unique_ptr <Json::StreamWriter> writer(builder.newStreamWriter());
+        std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
         std::ofstream output_file_stream(out_file);
         writer->write(data_handler.get_json_data(), &output_file_stream);
         output_file_stream.close();
