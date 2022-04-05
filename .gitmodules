@@ -1,3 +1,6 @@
 [submodule "libosmium"]
 	path = libosmium
 	url = https://github.com/osmcode/libosmium.git
+[submodule "libcpr"]
+	path = world/libcpr
+	url = https://github.com/libcpr/cpr
