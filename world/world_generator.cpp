@@ -85,7 +85,15 @@ int main(int argc, char *argv[]) {
         std::cerr << generic_usage << std::endl;
         return 2;
     } else if (strcmp(argv[1], "http") == 0) {
-        std::cout << "HTTP mode is not implemented yet";
+        std::string usage = "Usage: " + std::string(argv[0]) + " http <InputFile> <GetBoxesURL> <PushResultURL> <AuthorizationInfo> [<ConfigFile>]";
+        std::string config_file = rustymon::DEFAULT_CONFIG_FILENAME;
+        if (argc == 7) {
+            config_file = argv[6];
+        } else if (argc != 6) {
+            std::cerr << usage << std::endl;
+            return 2;
+        }
+        std::cout << "HTTP mode is not implemented yet." << std::endl;
         return 0;
     } else if (strcmp(argv[1], "file") == 0) {
         std::string usage = "Usage: " + std::string(argv[0]) + " file <InputFile> <OutputFile> <BoundingBox> [<ConfigFile>]";
