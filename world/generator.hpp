@@ -13,25 +13,25 @@ namespace rustymon {
             Json::Value spawns;  // may be null for streets
         };
 
-        CheckResult get_details(const osmium::TagList &tags, Json::Value check_items) {
-            for (Json::Value item: check_items) {
+        static CheckResult get_details(const osmium::TagList &tags, const Json::Value& check_items) {
+            for (const Json::Value &item: check_items) {
                 bool allowed = true;
                 int type = item["type"].asInt();
 
                 Json::Value required = item["required"];
                 Json::Value forbidden = item["forbidden"];
-                if (required.size() == 0 && forbidden.size() == 0) {
+                if (required.empty() && forbidden.empty()) {
                     continue;
                 }
 
-                for (std::string forbidden_key: forbidden.getMemberNames()) {
+                for (const std::string& forbidden_key: forbidden.getMemberNames()) {
                     if (tags.has_key(forbidden_key.c_str())) {
-                        if (forbidden[forbidden_key.c_str()].size() == 0) {
+                        if (forbidden[forbidden_key.c_str()].empty()) {
                             allowed = false;
                             break;
                         }
-                        for (Json::Value forbidden_value: forbidden[forbidden_key.c_str()]) {
-                            if (forbidden_value.asString().compare(tags.get_value_by_key(forbidden_key.c_str())) == 0) {
+                        for (const Json::Value& forbidden_value: forbidden[forbidden_key.c_str()]) {
+                            if (forbidden_value.asString() == tags.get_value_by_key(forbidden_key.c_str())) {
                                 allowed = false;
                             }
                         }
@@ -42,14 +42,14 @@ namespace rustymon {
                     continue;
                 }
 
-                for (std::string required_key: required.getMemberNames()) {
+                for (const std::string& required_key: required.getMemberNames()) {
                     if (!tags.has_key(required_key.c_str())) {
                         allowed = false;
                         break;
                     }
                     Json::Value required_values = required[required_key.c_str()];
-                    bool found = (required_values.size() == 0);
-                    for (Json::Value required_value: required_values) {
+                    bool found = required_values.empty();
+                    for (const Json::Value& required_value: required_values) {
                         if (strcmp(tags.get_value_by_key(required_key.c_str()), required_value.asCString()) == 0) {
                             found = true;
                         }
