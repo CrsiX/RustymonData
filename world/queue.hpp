@@ -4,10 +4,8 @@ namespace rustymon {
     class ThreadSafeQueue {
 
         static const std::size_t max_size = QUEUE_MAX_SIZE;
-        constexpr static const std::chrono::milliseconds max_wait{QUEUE_MAX_LOCK_WAIT_MS};
 
         mutable std::mutex mutex;
-
         std::queue<T> queue;
 
         /// Used to signal consumers when data is available in the queue.
@@ -26,7 +24,7 @@ namespace rustymon {
             if (max_size) {
                 while (size() >= max_size) {
                     std::unique_lock<std::mutex> lock{mutex};
-                    space_available.wait_for(lock, max_wait, [this] {
+                    space_available.wait_for(lock, std::chrono::milliseconds{QUEUE_MAX_LOCK_WAIT_MS}, [this] {
                         return queue.size() < max_size;
                     });
 

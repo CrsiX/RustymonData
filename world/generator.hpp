@@ -91,7 +91,7 @@ namespace rustymon {
 
         WorldGenerator(osmium::Box bbox, std::string config_filename) {
             this->bbox = bbox;
-            this->config = load_config(config_filename);
+            this->config = load_config(std::move(config_filename));
             check_valid_bbox();
         }
 

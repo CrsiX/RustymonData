@@ -42,7 +42,7 @@ namespace rustymon {
         location_handler_type location_handler{index};
         location_handler.ignore_errors();
 
-        WorldGenerator data_handler = WorldGenerator(bbox, config_file);
+        WorldGenerator data_handler(bbox, config_file);
         osmium::io::Reader reader{input_file, osmium::io::read_meta::no};
 
         osmium::apply(reader, location_handler, data_handler,
