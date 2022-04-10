@@ -69,5 +69,10 @@
   ],
   "areas": [
 
-  ]
+  ],
+  "workers": {
+    "node": 2,
+    "way": 1,
+    "area": 4
+  }
 }

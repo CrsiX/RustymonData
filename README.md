@@ -69,6 +69,15 @@ See the `world` directory.
 
 ```json5
 {
+  // Definitions for worker threads
+  "workers": {
+    // Number of worker threads for node processing
+    "node": 2,
+    // Number of worker threads for way processing
+    "way": 2,
+    // Number of worker threads for area processing
+    "area": 4
+  },
   // Definition for Points Of Interest (POI)
   "poi": [
     {
