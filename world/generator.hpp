@@ -85,6 +85,18 @@ namespace rustymon {
             }
         }
 
+        void node_worker() {
+            // TODO
+        }
+
+        void way_worker() {
+            // TODO
+        }
+
+        void area_worker() {
+            // TODO
+        }
+
     public:
 
         WorldGenerator() {
@@ -212,6 +224,22 @@ namespace rustymon {
                 entry["points"] = waypoints;
                 entry["spawns"] = result.spawns;
                 this->areas.append(entry);
+            }
+        }
+
+        void start_workers() {
+            Json::Value node_workers = config["workers"].get("node", NODE_DEFAULT_WORKER_THREADS);
+            Json::Value way_workers = config["workers"].get("way", WAY_DEFAULT_WORKER_THREADS);
+            Json::Value area_workers = config["workers"].get("area", AREA_DEFAULT_WORKER_THREADS);
+
+            for (int i = 0; i < node_workers.asInt(); i++) {
+                worker_threads.emplace_back(&WorldGenerator::node_worker, this);
+            }
+            for (int i = 0; i < way_workers.asInt(); i++) {
+                worker_threads.emplace_back(&WorldGenerator::way_worker, this);
+            }
+            for (int i = 0; i < area_workers.asInt(); i++) {
+                worker_threads.emplace_back(&WorldGenerator::area_worker, this);
             }
         }
     };

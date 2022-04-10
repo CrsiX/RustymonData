@@ -19,6 +19,7 @@
 
 #include "rustymon_constants.hpp"
 #include "rustymon_enums.hpp"
+#include "queue.hpp"
 #include "generator_helpers.hpp"
 #include "generator.hpp"
 
@@ -43,6 +44,7 @@ namespace rustymon {
         location_handler.ignore_errors();
 
         WorldGenerator data_handler(bbox, config_file);
+        data_handler.start_workers();
         osmium::io::Reader reader{input_file, osmium::io::read_meta::no};
 
         osmium::apply(reader, location_handler, data_handler,

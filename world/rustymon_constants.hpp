@@ -9,4 +9,8 @@ namespace rustymon {
     static const int QUEUE_MAX_SIZE = 16 * 1024;
     static const int QUEUE_MAX_LOCK_WAIT_MS = 2;
 
+    static const int NODE_DEFAULT_WORKER_THREADS = 4;
+    static const int WAY_DEFAULT_WORKER_THREADS = 2;
+    static const int AREA_DEFAULT_WORKER_THREADS = 4;
+
 }
