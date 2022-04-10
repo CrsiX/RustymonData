@@ -21,37 +21,39 @@ namespace rustymon {
          * The element will be moved from the given space.
          */
         void push(T value) {
-            if (max_size) {
-                while (size() >= max_size) {
-                    std::unique_lock<std::mutex> lock{mutex};
-                    space_available.wait_for(lock, std::chrono::milliseconds{QUEUE_MAX_LOCK_WAIT_MS}, [this] {
-                        return queue.size() < max_size;
-                    });
-
-                }
+            std::unique_lock<std::mutex> lock{mutex};
+            while (queue.size() >= max_size) {
+                space_available.wait_for(lock, std::chrono::milliseconds{QUEUE_MAX_LOCK_WAIT_MS});
             }
-            std::lock_guard<std::mutex> lock{mutex};
             queue.push(std::move(value));
             data_available.notify_one();
         }
 
         /**
-         * Pop an element from the queue. Block until data is available.
+         * Pop an element from the queue. Block until data is available and the predicate is true.
+         * Throw a std::runtime_error when the queue is empty while the predicate became false.
+         * The element will be moved to the given space.
+         */
+        template <typename P>
+        void pop(T &value, P predicate = [](){return true;}) {
+            std::unique_lock<std::mutex> lock{mutex};
+            while (queue.empty() && predicate()) {
+                data_available.wait_for(lock, std::chrono::milliseconds{QUEUE_MAX_LOCK_WAIT_MS});
+            }
+            if (queue.empty()) {
+                throw std::runtime_error("empty queue");
+            }
+            value = std::move(queue.front());
+            queue.pop();
+            space_available.notify_one();
+        }
+
+        /**
+         * Pop an element from the queue. Block until data is available
          * The element will be moved to the given space.
          */
         void pop(T &value) {
-            std::unique_lock<std::mutex> lock{mutex};
-            data_available.wait(lock, [this] {
-                return !queue.empty();
-            });
-            if (!queue.empty()) {
-                value = std::move(queue.front());
-                queue.pop();
-                lock.unlock();
-                if (max_size) {
-                    space_available.notify_one();
-                }
-            }
+            return pop(value, [](){return true;});
         }
 
         /**
