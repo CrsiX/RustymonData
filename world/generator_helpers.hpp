@@ -1,5 +1,10 @@
 namespace rustymon {
 
+    long get_timestamp() {
+        return std::chrono::duration_cast<std::chrono::seconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count();
+    }
+
     Json::Value load_config(std::string filename) {
         Json::Value config;
         std::ifstream config_stream(filename, std::ifstream::binary);

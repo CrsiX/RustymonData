@@ -7,6 +7,16 @@ namespace rustymon {
         Json::Value poi = Json::Value(Json::arrayValue);
         Json::Value areas = Json::Value(Json::arrayValue);
 
+        ThreadSafeQueue<const osmium::Node*> node_work_queue;
+        ThreadSafeQueue<const osmium::Way*> way_work_queue;
+        ThreadSafeQueue<const osmium::Area*> area_work_queue;
+
+        ThreadSafeQueue<Json::Value> poi_result_queue;
+        ThreadSafeQueue<Json::Value> street_result_queue;
+        ThreadSafeQueue<Json::Value> area_result_queue;
+
+        std::vector<std::thread> worker_threads;
+
         struct CheckResult {
             bool allowed;
             int type;
@@ -83,7 +93,7 @@ namespace rustymon {
             check_valid_bbox();
         }
 
-        WorldGenerator(osmium::Box bbox) {
+        explicit WorldGenerator(osmium::Box bbox) {
             this->bbox = bbox;
             this->config = load_config(DEFAULT_CONFIG_FILENAME);
             check_valid_bbox();
@@ -104,8 +114,7 @@ namespace rustymon {
 
             Json::Value root;
             root["bbox"] = bbox_json;
-            root["timestamp"] = std::chrono::duration_cast<std::chrono::seconds>(
-                    std::chrono::system_clock::now().time_since_epoch()).count();
+            root["timestamp"] = get_timestamp();
             root["version"] = FILE_VERSION;
             root["streets"] = this->streets;
             root["poi"] = this->poi;
@@ -114,6 +123,7 @@ namespace rustymon {
         }
 
         void node(const osmium::Node &node) {
+            node_work_queue.push(&node);
             if (node.visible()) {
                 CheckResult result = get_details(node.tags(), this->config["poi"]);
                 if (!result.allowed) {
@@ -133,6 +143,7 @@ namespace rustymon {
         }
 
         void way(const osmium::Way &way) {
+            way_work_queue.push(&way);
             if (!way.ends_have_same_id() && !way.ends_have_same_location()) {
                 CheckResult result = get_details(way.tags(), this->config["streets"]);
                 if (!result.allowed) {
@@ -152,6 +163,7 @@ namespace rustymon {
         }
 
         void area(const osmium::Area &area) {
+            area_work_queue.push(&area);
             if (area.visible()) {
                 CheckResult result = get_details(area.tags(), this->config["areas"]);
                 if (!result.allowed) {
