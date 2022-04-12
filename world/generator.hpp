@@ -3,19 +3,10 @@ namespace rustymon {
     class WorldGenerator : public osmium::handler::Handler {
         osmium::Box bbox;
         Json::Value config;
-        Json::Value streets = Json::Value(Json::arrayValue);
-        Json::Value poi = Json::Value(Json::arrayValue);
-        Json::Value areas = Json::Value(Json::arrayValue);
 
-        ThreadSafeQueue<const osmium::Node*> node_work_queue;
-        ThreadSafeQueue<const osmium::Way*> way_work_queue;
-        ThreadSafeQueue<const osmium::Area*> area_work_queue;
-
-        ThreadSafeQueue<Json::Value> poi_result_queue;
-        ThreadSafeQueue<Json::Value> street_result_queue;
-        ThreadSafeQueue<Json::Value> area_result_queue;
-
-        std::vector<std::thread> worker_threads;
+        std::queue<Json::Value> poi_result_queue;
+        std::queue<Json::Value> street_result_queue;
+        std::queue<Json::Value> area_result_queue;
 
         struct CheckResult {
             bool allowed;
@@ -28,8 +19,8 @@ namespace rustymon {
                 bool allowed = true;
                 int type = item["type"].asInt();
 
-                Json::Value required = item["required"];
-                Json::Value forbidden = item["forbidden"];
+                const Json::Value required = item["required"];
+                const Json::Value forbidden = item["forbidden"];
                 if (required.empty() && forbidden.empty()) {
                     continue;
                 }
@@ -85,18 +76,6 @@ namespace rustymon {
             }
         }
 
-        void node_worker() {
-            // TODO
-        }
-
-        void way_worker() {
-            // TODO
-        }
-
-        void area_worker() {
-            // TODO
-        }
-
     public:
 
         WorldGenerator() {
@@ -124,18 +103,36 @@ namespace rustymon {
             bbox_json[2] = this->bbox.top_right().lon();
             bbox_json[3] = this->bbox.top_right().lat();
 
+            Json::Value poi = Json::Value(Json::arrayValue);
+            for (int i = 0; i < poi_result_queue.size(); i++) {
+                const Json::Value& item = poi_result_queue.front();
+                poi_result_queue.pop();
+                poi.append(item);
+            }
+            Json::Value streets = Json::Value(Json::arrayValue);
+            for (int i = 0; i < street_result_queue.size(); i++) {
+                const Json::Value& item = street_result_queue.front();
+                street_result_queue.pop();
+                streets.append(item);
+            }
+            Json::Value areas = Json::Value(Json::arrayValue);
+            for (int i = 0; i < area_result_queue.size(); i++) {
+                const Json::Value& item = area_result_queue.front();
+                area_result_queue.pop();
+                poi.append(item);
+            }
+
             Json::Value root;
             root["bbox"] = bbox_json;
             root["timestamp"] = get_timestamp();
             root["version"] = FILE_VERSION;
-            root["streets"] = this->streets;
-            root["poi"] = this->poi;
-            root["areas"] = this->areas;
+            root["poi"] = poi;
+            root["streets"] = streets;
+            root["areas"] = areas;
             return root;
         }
 
         void node(const osmium::Node &node) {
-            node_work_queue.push(&node);
             if (node.visible()) {
                 CheckResult result = get_details(node.tags(), this->config["poi"]);
                 if (!result.allowed) {
@@ -150,12 +147,11 @@ namespace rustymon {
                 entry["oid"] = node.id();
                 entry["type"] = result.type;
                 entry["spawns"] = result.spawns;
-                this->poi.append(entry);
+                this->poi_result_queue.push(entry);
             }
         }
 
         void way(const osmium::Way &way) {
-            way_work_queue.push(&way);
             if (!way.ends_have_same_id() && !way.ends_have_same_location()) {
                 CheckResult result = get_details(way.tags(), this->config["streets"]);
                 if (!result.allowed) {
@@ -170,12 +166,11 @@ namespace rustymon {
                     waypoints.append(make_point(node.location()));
                 }
                 entry["points"] = waypoints;
-                this->streets.append(entry);
+                this->street_result_queue.push(entry);
             }
         }
 
         void area(const osmium::Area &area) {
-            area_work_queue.push(&area);
             if (area.visible()) {
                 CheckResult result = get_details(area.tags(), this->config["areas"]);
                 if (!result.allowed) {
@@ -223,23 +218,7 @@ namespace rustymon {
                 entry["oid"] = area.id();
                 entry["points"] = waypoints;
                 entry["spawns"] = result.spawns;
-                this->areas.append(entry);
-            }
-        }
-
-        void start_workers() {
-            Json::Value node_workers = config["workers"].get("node", NODE_DEFAULT_WORKER_THREADS);
-            Json::Value way_workers = config["workers"].get("way", WAY_DEFAULT_WORKER_THREADS);
-            Json::Value area_workers = config["workers"].get("area", AREA_DEFAULT_WORKER_THREADS);
-
-            for (int i = 0; i < node_workers.asInt(); i++) {
-                worker_threads.emplace_back(&WorldGenerator::node_worker, this);
-            }
-            for (int i = 0; i < way_workers.asInt(); i++) {
-                worker_threads.emplace_back(&WorldGenerator::way_worker, this);
-            }
-            for (int i = 0; i < area_workers.asInt(); i++) {
-                worker_threads.emplace_back(&WorldGenerator::area_worker, this);
+                this->area_result_queue.push(entry);
             }
         }
     };
