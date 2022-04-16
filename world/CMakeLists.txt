@@ -17,7 +17,7 @@ FetchContent_Declare(
         GIT_TAG 21f42cf882d0b7e5ae9e3434574fc47e187728de)
 FetchContent_MakeAvailable(cpr)
 
-add_executable(world_generator world_generator.cpp)
+add_executable(world_generator main.cpp)
 target_link_libraries(world_generator
         PRIVATE cpr::cpr
         pthread
