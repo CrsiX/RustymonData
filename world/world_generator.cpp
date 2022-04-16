@@ -17,6 +17,7 @@
 #include <osmium/osm/way.hpp>
 #include <osmium/relations/relations_manager.hpp>
 
+#include "structs.hpp"
 #include "rustymon_constants.hpp"
 #include "rustymon_enums.hpp"
 #include "queue.hpp"
