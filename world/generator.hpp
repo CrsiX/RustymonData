@@ -1,9 +1,12 @@
 namespace rustymon {
 
     class WorldGenerator : public osmium::handler::Handler {
+        int x_size_factor;
+        int y_size_factor;
         osmium::Box bbox;
         Json::Value config;
 
+        std::map<int, std::map<int, structs::Tile>> results;
         std::queue<Json::Value> poi_result_queue;
         std::queue<Json::Value> street_result_queue;
         std::queue<Json::Value> area_result_queue;
@@ -14,7 +17,7 @@ namespace rustymon {
             Json::Value spawns;  // may be null for streets
         };
 
-        static CheckResult get_details(const osmium::TagList &tags, const Json::Value& check_items) {
+        static CheckResult get_details(const osmium::TagList& tags, const Json::Value& check_items) {
             for (const Json::Value &item: check_items) {
                 bool allowed = true;
                 int type = item["type"].asInt();
@@ -82,18 +85,32 @@ namespace rustymon {
             this->bbox = osmium::Box(-180, -90, 180, 90);
             this->config = load_config(DEFAULT_CONFIG_FILENAME);
             check_valid_bbox();
+            this->x_size_factor = this->config["size"]["x"].asInt();
+            this->y_size_factor = this->config["size"]["y"].asInt();
         }
 
         explicit WorldGenerator(osmium::Box bbox) {
             this->bbox = bbox;
             this->config = load_config(DEFAULT_CONFIG_FILENAME);
             check_valid_bbox();
+            this->x_size_factor = this->config["size"]["x"].asInt();
+            this->y_size_factor = this->config["size"]["y"].asInt();
         }
 
-        WorldGenerator(osmium::Box bbox, std::string config_filename) {
-            this->bbox = bbox;
-            this->config = load_config(std::move(config_filename));
+        explicit WorldGenerator(const std::string &config_filename) {
+            this->bbox = osmium::Box(-180, -90, 180, 90);
+            this->config = load_config(DEFAULT_CONFIG_FILENAME);
             check_valid_bbox();
+            this->x_size_factor = this->config["size"]["x"].asInt();
+            this->y_size_factor = this->config["size"]["y"].asInt();
+        }
+
+        WorldGenerator(osmium::Box bbox, const std::string &config_filename) {
+            this->bbox = bbox;
+            this->config = load_config(config_filename);
+            check_valid_bbox();
+            this->x_size_factor = this->config["size"]["x"].asInt();
+            this->y_size_factor = this->config["size"]["y"].asInt();
         }
 
         Json::Value get_json_data() {

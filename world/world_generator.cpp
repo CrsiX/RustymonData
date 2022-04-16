@@ -27,11 +27,6 @@
 #include "exporter.hpp"
 
 
-
-
-}
-
-
 void print_help() {
     std::cout << "Help is not implemented yet." << std::endl;
 }
