@@ -12,6 +12,13 @@ to build the world generator on Debian-like systems
 - `libjsoncpp-dev`
 - `libprotozero-dev`
 
+On some systems, the following hack might be needed to properly
+include the JSON C++ library during the build:
+
+```sh
+sudo ln -s /usr/include/jsoncpp/json /usr/include/json
+```
+
 After cloning this repository, make sure to initialize its submodules:
 
 ```sh

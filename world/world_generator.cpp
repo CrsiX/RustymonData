@@ -3,8 +3,8 @@
 #include <ostream>
 #include <iostream>
 
-#include <jsoncpp/json/json.h>
-#include <jsoncpp/json/writer.h>
+#include <json/json.h>
+#include <json/writer.h>
 #include <osmium/handler.hpp>
 #include <osmium/visitor.hpp>
 #include <osmium/area/assembler.hpp>
