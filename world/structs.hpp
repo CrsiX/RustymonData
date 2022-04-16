@@ -106,6 +106,45 @@ namespace rustymon {
             friend std::ostream& operator << (std::ostream &stream, const Tile &tile);
         };
 
+        std::ostream& operator << (std::ostream &stream, const Tile &tile) {
+            stream << "{";
+            if (tile.bbox.valid()) {
+                stream << "\"bbox\":["
+                       << tile.bbox.bottom_left().lon() << ","
+                       << tile.bbox.bottom_left().lat() << ","
+                       << tile.bbox.top_right().lon() << ","
+                       << tile.bbox.top_right().lat() << "],";
+            }
+            stream << "\"timestamp\":" << tile.timestamp << ","
+                   << "\"version\":" << tile.version << ","
+                   << "\"poi\":[";
+            int i = 0;
+            for (; i + 1 < tile.poi.size(); i++) {
+                stream << tile.poi.at(i) << ",";
+            }
+            if (!tile.poi.empty()) {
+                stream << tile.poi.at(i);
+            }
+            stream << "],\"streets\":[";
+            i = 0;
+            for (; i + 1 < tile.streets.size(); i++) {
+                stream << tile.streets.at(i) << ",";
+            }
+            if (!tile.streets.empty()) {
+                stream << tile.streets.at(i);
+            }
+            stream << "],\"areas\":[";
+            i = 0;
+            for (; i + 1 < tile.areas.size(); i++) {
+                stream << tile.areas.at(i) << ",";
+            }
+            if (!tile.areas.empty()) {
+                stream << tile.areas.at(i);
+            }
+            stream << "]}";
+            return stream;
+        }
+
     }
 
 }
