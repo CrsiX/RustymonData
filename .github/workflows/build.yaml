@@ -1,0 +1,29 @@
+name: World Testing
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies and setup the environment
+        run: |
+          sudo apt install make cmake build-essential libboost-dev libbz2-dev libssl-dev libjsoncpp-dev libprotozero-dev -y
+      - name: Checkout submodules
+        run: |
+          git submodule init
+          git submodule update
+      - name: Build the app
+        run: |
+          cd world
+          mkdir build
+          cd build
+          cmake ..
+          make
+      - name: Execute the resulting binary once
+        run: |
+          ./world_generator test

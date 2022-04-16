@@ -43,10 +43,13 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    std::string generic_usage = "Usage: " + std::string(argv[0]) + " {http,file} [Options...]";
+    std::string generic_usage = "Usage: " + std::string(argv[0]) + " {http,file,test} [Options...]";
     if (argc < 2) {
         std::cerr << generic_usage << std::endl;
         return 2;
+    } else if (strcmp(argv[1], "test") == 0) {
+        std::cout << "Tests are not implemented yet." << std::endl;
+        return 0;
     } else if (strcmp(argv[1], "http") == 0) {
         std::string usage = "Usage: " + std::string(argv[0]) + " http <InputFile> <PushResultURL> <AuthorizationInfo> [<ConfigFile>]";
         std::string config_file = rustymon::DEFAULT_CONFIG_FILENAME;
