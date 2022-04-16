@@ -1,5 +1,6 @@
 #include <chrono>
 #include <fstream>
+#include <ostream>
 #include <iostream>
 
 #include <jsoncpp/json/json.h>
