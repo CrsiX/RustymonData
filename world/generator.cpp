@@ -236,7 +236,7 @@ namespace rustymon {
 
     namespace reader {
 
-        static void read_from_file(osmium::handler::Handler &data_handler, const std::string &in_file) {
+        void read_from_file(osmium::handler::Handler &data_handler, const std::string &in_file) {
             const osmium::io::File input_file{in_file};
 
             osmium::area::Assembler::config_type assembler_config;

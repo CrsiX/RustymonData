@@ -26,7 +26,7 @@ namespace rustymon {
         osmium::Box bbox;
         Json::Value config;
 
-        std::map<int, std::map<int, structs::Tile>> tiles;
+        structs::World tiles;
 
         static int get_details(const osmium::TagList& tags, const Json::Value& check_items, std::vector<int> &spawns);
 
@@ -49,14 +49,6 @@ namespace rustymon {
             this->y_size_factor = this->config["size"]["y"].asInt();
         }
 
-        explicit WorldGenerator(osmium::Box bbox) {
-            this->bbox = bbox;
-            this->config = helpers::load_config(DEFAULT_CONFIG_FILENAME);
-            check_valid_bbox();
-            this->x_size_factor = this->config["size"]["x"].asInt();
-            this->y_size_factor = this->config["size"]["y"].asInt();
-        }
-
         explicit WorldGenerator(const std::string &config_filename) {
             this->bbox = osmium::Box(-180, -90, 180, 90);
             this->config = helpers::load_config(DEFAULT_CONFIG_FILENAME);
@@ -71,6 +63,19 @@ namespace rustymon {
             check_valid_bbox();
             this->x_size_factor = this->config["size"]["x"].asInt();
             this->y_size_factor = this->config["size"]["y"].asInt();
+        }
+
+        WorldGenerator(const std::string &config_filename, structs::World &world) {
+            this->bbox = osmium::Box(-180, -90, 180, 90);
+            this->config = helpers::load_config(config_filename);
+            check_valid_bbox();
+            this->x_size_factor = this->config["size"]["x"].asInt();
+            this->y_size_factor = this->config["size"]["y"].asInt();
+            this->tiles = std::move(world);
+        }
+
+        structs::World& get_world() {
+            return this->tiles;
         }
 
         Json::Value get_json_data() {
@@ -105,7 +110,7 @@ namespace rustymon {
         using index_type = osmium::index::map::FlexMem<osmium::unsigned_object_id_type, osmium::Location>;
         using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
 
-        static void read_from_file(osmium::handler::Handler &data_handler, const std::string &in_file);
+        void read_from_file(osmium::handler::Handler &data_handler, const std::string &in_file);
 
     }
 
