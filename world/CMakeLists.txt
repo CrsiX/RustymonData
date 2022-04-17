@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 project(world_generator)
 
 set(CMAKE_CXX_STANDARD 14)
+set(BUILD_SHARED_LIBS OFF)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 find_package(Osmium REQUIRED COMPONENT io)
