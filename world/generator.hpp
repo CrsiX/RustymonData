@@ -1,8 +1,26 @@
 #ifndef WORLD_GENERATOR_GENERATOR_HPP
 #define WORLD_GENERATOR_GENERATOR_HPP
 
+#include <chrono>
+#include <fstream>
+#include <iostream>
 
+#include <json/json.h>
+#include <osmium/handler.hpp>
+#include <osmium/visitor.hpp>
+#include <osmium/area/assembler.hpp>
+#include <osmium/area/multipolygon_manager.hpp>
+#include <osmium/geom/coordinates.hpp>
+#include <osmium/handler/node_locations_for_ways.hpp>
+#include <osmium/index/map/flex_mem.hpp>
+#include <osmium/io/any_input.hpp>
+#include <osmium/osm/area.hpp>
+#include <osmium/osm/node.hpp>
+#include <osmium/osm/way.hpp>
+#include <osmium/relations/relations_manager.hpp>
 
+#include "constants.hpp"
+#include "structs.hpp"
 
 namespace rustymon {
 
