@@ -6,18 +6,9 @@ namespace rustymon {
         osmium::Box bbox;
         Json::Value config;
 
-        std::map<int, std::map<int, structs::Tile>> results;
-        std::queue<Json::Value> poi_result_queue;
-        std::queue<Json::Value> street_result_queue;
-        std::queue<Json::Value> area_result_queue;
+        std::map<int, std::map<int, structs::Tile>> tiles;
 
-        struct CheckResult {
-            bool allowed;
-            int type;
-            Json::Value spawns;  // may be null for streets
-        };
-
-        static CheckResult get_details(const osmium::TagList& tags, const Json::Value& check_items) {
+        static structs::CheckResult get_details(const osmium::TagList& tags, const Json::Value& check_items) {
             for (const Json::Value &item: check_items) {
                 bool allowed = true;
                 int type = item["type"].asInt();
@@ -65,11 +56,15 @@ namespace rustymon {
                 }
 
                 if (allowed) {
-                    return CheckResult{allowed, type, item["spawns"]};
+                    std::vector<int> spawns;
+                    for (const Json::Value &s : item["spawns"]) {
+                        spawns.push_back(s.asInt());
+                    }
+                    return structs::CheckResult{allowed, type, spawns};
                 }
             }
 
-            return CheckResult{false, -1, Json::nullValue};
+            return structs::CheckResult{false, -1, std::vector<int>{}};
         }
 
         void check_valid_bbox() {
@@ -77,6 +72,23 @@ namespace rustymon {
                 std::cerr << "Invalid bounding box " << this->bbox << "!" << std::endl;
                 exit(1);
             }
+        }
+
+        void ensure_exists_in_world(const int &x_section, const int &y_section) {
+            tiles.insert(std::pair<int, std::map<int, structs::Tile>>{x_section, std::map<int, structs::Tile>()});
+            tiles.at(x_section).insert(std::pair<int, structs::Tile>{y_section, structs::Tile{
+                    osmium::Box(
+                            static_cast<double>(x_section) / x_size_factor,
+                            static_cast<double>(y_section) / y_size_factor,
+                            (static_cast<double>(x_section) + 1) / x_size_factor,
+                            (static_cast<double>(y_section) + 1) / y_size_factor
+                    ),
+                    get_timestamp(),
+                    FILE_VERSION,
+                    std::vector<structs::POI>{},
+                    std::vector<structs::Street>{},
+                    std::vector<structs::Area>{}
+            }});
         }
 
     public:
