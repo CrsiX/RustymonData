@@ -4,6 +4,10 @@ namespace rustymon {
 
     namespace structs {
 
+        bool BoundingBox::valid() const {
+            return true;
+        }
+
         std::ostream &operator<<(std::ostream &stream, const BoundingBox &bbox) {
             stream << "["
                    << bbox.bottom_left.first << ","
@@ -84,9 +88,7 @@ namespace rustymon {
                        << tile.bbox.top_right.first << ","
                        << tile.bbox.top_right.second << "],";
             }
-            stream << "\"timestamp\":" << tile.timestamp << ","
-                   << "\"version\":" << tile.version << ","
-                   << "\"poi\":[";
+            stream << "\"poi\":[";
             int i = 0;
             for (; i + 1 < tile.poi.size(); i++) {
                 stream << tile.poi.at(i) << ",";
@@ -115,8 +117,15 @@ namespace rustymon {
         }
 
         std::ostream& stream(std::ostream &stream, const World &world) {
-            // TODO: Implement this method
-            stream << "Directly exporting a World is not implemented yet.";
+            stream << "{";
+            for (auto const& x : world) {
+                stream << x.first << ":{";
+                for (auto const &y: x.second) {
+                    stream << y.first << ":" << y.second << ",";  // TODO: this comma must not be present on the last item
+                }
+                stream << "},";  // TODO: this comma must not be present on the last item
+            }
+            stream << "}";
             return stream;
         }
 

@@ -139,8 +139,6 @@ namespace rustymon {
                         (static_cast<double>(x_section) + 1) / x_size_factor,
                         (static_cast<double>(y_section) + 1) / y_size_factor
                 ),
-                helpers::get_timestamp(),
-                FILE_VERSION,
                 std::vector<structs::POI>{},
                 std::vector<structs::Street>{},
                 std::vector<structs::Area>{}

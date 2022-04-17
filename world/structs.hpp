@@ -59,8 +59,6 @@ namespace rustymon {
 
         struct Tile {
             const BoundingBox bbox;
-            const long timestamp;
-            const int version;
             std::vector<POI> poi;
             std::vector<Street> streets;
             std::vector<Area> areas;
