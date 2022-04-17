@@ -2,12 +2,6 @@ namespace rustymon {
 
     namespace structs {
 
-        struct CheckResult {
-            const bool allowed;
-            const int type;
-            std::vector<int> spawns;
-        };
-
         struct POI {
             const long oid;
             const int type;

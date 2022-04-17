@@ -8,13 +8,13 @@ namespace rustymon {
 
         std::map<int, std::map<int, structs::Tile>> tiles;
 
-        static structs::CheckResult get_details(const osmium::TagList& tags, const Json::Value& check_items) {
+        static int get_details(const osmium::TagList& tags, const Json::Value& check_items, std::vector<int> &spawns) {
             for (const Json::Value &item: check_items) {
                 bool allowed = true;
                 int type = item["type"].asInt();
 
-                const Json::Value required = item["required"];
-                const Json::Value forbidden = item["forbidden"];
+                const Json::Value &required = item["required"];
+                const Json::Value &forbidden = item["forbidden"];
                 if (required.empty() && forbidden.empty()) {
                     continue;
                 }
@@ -42,7 +42,7 @@ namespace rustymon {
                         allowed = false;
                         break;
                     }
-                    Json::Value required_values = required[required_key.c_str()];
+                    const Json::Value &required_values = required[required_key.c_str()];
                     bool found = required_values.empty();
                     for (const Json::Value& required_value: required_values) {
                         if (strcmp(tags.get_value_by_key(required_key.c_str()), required_value.asCString()) == 0) {
@@ -56,15 +56,14 @@ namespace rustymon {
                 }
 
                 if (allowed) {
-                    std::vector<int> spawns;
                     for (const Json::Value &s : item["spawns"]) {
                         spawns.push_back(s.asInt());
                     }
-                    return structs::CheckResult{allowed, type, spawns};
+                    return type;
                 }
             }
 
-            return structs::CheckResult{false, -1, std::vector<int>{}};
+            return -1;
         }
 
         void check_valid_bbox() {
@@ -144,8 +143,9 @@ namespace rustymon {
 
         void node(const osmium::Node &node) {
             if (node.visible()) {
-                structs::CheckResult result = get_details(node.tags(), this->config["poi"]);
-                if (!result.allowed) {
+                std::vector<int> spawns;
+                int type = get_details(node.tags(), this->config["poi"], spawns);
+                if (type < 0) {
                     return;
                 }
 
@@ -154,22 +154,23 @@ namespace rustymon {
                 ensure_exists_in_world(pos_x, pos_y);
                 tiles.at(pos_x).at(pos_y).poi.push_back(structs::POI{
                         node.id(),
-                        result.type,
+                        type,
                         std::pair<double, double>{node.location().lon(), node.location().lat()},
-                        std::move(result.spawns)
+                        std::move(spawns)
                 });
             }
         }
 
         void way(const osmium::Way &way) {
             if (!way.ends_have_same_id() && !way.ends_have_same_location()) {
-                structs::CheckResult result = get_details(way.tags(), this->config["streets"]);
-                if (!result.allowed) {
+                std::vector<int> spawns;
+                int type = get_details(way.tags(), this->config["streets"], spawns);
+                if (type < 0) {
                     return;
                 }
 
                 Json::Value entry;
-                entry["type"] = result.type;
+                entry["type"] = type;
                 entry["oid"] = way.id();
                 Json::Value waypoints = Json::Value(Json::arrayValue);
                 for (auto &node: way.nodes()) {
@@ -181,8 +182,9 @@ namespace rustymon {
 
         void area(const osmium::Area &area) {
             if (area.visible()) {
-                structs::CheckResult result = get_details(area.tags(), this->config["areas"]);
-                if (!result.allowed) {
+                std::vector<int> spawns;
+                int type = get_details(area.tags(), this->config["areas"], spawns);
+                if (type < 0) {
                     return;
                 }
 
@@ -220,7 +222,7 @@ namespace rustymon {
                 }
 
                 Json::Value entry;
-                entry["type"] = result.type;
+                entry["type"] = type;
                 entry["oid"] = area.id();
                 entry["points"] = waypoints;
             }
