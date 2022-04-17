@@ -110,10 +110,7 @@ namespace rustymon {
             root["poi"] = Json::Value(Json::arrayValue);
             root["streets"] = Json::Value(Json::arrayValue);
             root["areas"] = Json::Value(Json::arrayValue);
-
-                }
-
-            }
+            return root;
         }
 
         void node(const osmium::Node &node);
