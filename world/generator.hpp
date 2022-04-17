@@ -133,7 +133,7 @@ namespace rustymon {
 
             Json::Value root;
             root["bbox"] = bbox_json;
-            root["timestamp"] = get_timestamp();
+            root["timestamp"] = Json::Value::UInt64(static_cast<unsigned long>(get_timestamp()));
             root["version"] = FILE_VERSION;
             root["poi"] = Json::Value(Json::arrayValue);
             root["streets"] = Json::Value(Json::arrayValue);
@@ -171,7 +171,7 @@ namespace rustymon {
 
                 Json::Value entry;
                 entry["type"] = type;
-                entry["oid"] = way.id();
+                entry["oid"] = Json::Value::UInt64(static_cast<unsigned long>(way.id()));
                 Json::Value waypoints = Json::Value(Json::arrayValue);
                 for (auto &node: way.nodes()) {
                     waypoints.append(make_point(node.location()));
@@ -223,7 +223,7 @@ namespace rustymon {
 
                 Json::Value entry;
                 entry["type"] = type;
-                entry["oid"] = area.id();
+                entry["oid"] = Json::Value::UInt64(static_cast<unsigned long>(area.id()));
                 entry["points"] = waypoints;
             }
         }
