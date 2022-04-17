@@ -27,4 +27,4 @@ jobs:
           make
       - name: Execute the resulting binary once
         run: |
-          ./world_generator test
+          ./world/build/world_generator test
