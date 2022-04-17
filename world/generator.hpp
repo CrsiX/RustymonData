@@ -125,7 +125,7 @@ namespace rustymon {
         using index_type = osmium::index::map::FlexMem<osmium::unsigned_object_id_type, osmium::Location>;
         using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
 
-        void read_from_file(osmium::handler::Handler &data_handler, const std::string &in_file);
+        void read_from_file(WorldGenerator &data_handler, const std::string &in_file);
 
     }
 
