@@ -132,57 +132,38 @@ namespace rustymon {
             bbox_json[2] = this->bbox.top_right().lon();
             bbox_json[3] = this->bbox.top_right().lat();
 
-            Json::Value poi = Json::Value(Json::arrayValue);
-            for (int i = 0; i < poi_result_queue.size(); i++) {
-                const Json::Value& item = poi_result_queue.front();
-                poi_result_queue.pop();
-                poi.append(item);
-            }
-            Json::Value streets = Json::Value(Json::arrayValue);
-            for (int i = 0; i < street_result_queue.size(); i++) {
-                const Json::Value& item = street_result_queue.front();
-                street_result_queue.pop();
-                streets.append(item);
-            }
-            Json::Value areas = Json::Value(Json::arrayValue);
-            for (int i = 0; i < area_result_queue.size(); i++) {
-                const Json::Value& item = area_result_queue.front();
-                area_result_queue.pop();
-                poi.append(item);
-            }
-
             Json::Value root;
             root["bbox"] = bbox_json;
             root["timestamp"] = get_timestamp();
             root["version"] = FILE_VERSION;
-            root["poi"] = poi;
-            root["streets"] = streets;
-            root["areas"] = areas;
+            root["poi"] = Json::Value(Json::arrayValue);
+            root["streets"] = Json::Value(Json::arrayValue);
+            root["areas"] = Json::Value(Json::arrayValue);
             return root;
         }
 
         void node(const osmium::Node &node) {
             if (node.visible()) {
-                CheckResult result = get_details(node.tags(), this->config["poi"]);
+                structs::CheckResult result = get_details(node.tags(), this->config["poi"]);
                 if (!result.allowed) {
                     return;
                 }
-                if (result.spawns == Json::nullValue) {
-                    result.spawns = Json::Value(Json::arrayValue);
-                }
 
-                Json::Value entry;
-                entry["point"] = make_point(node.location());
-                entry["oid"] = node.id();
-                entry["type"] = result.type;
-                entry["spawns"] = result.spawns;
-                this->poi_result_queue.push(entry);
+                int pos_x = std::floor(node.location().lon() * x_size_factor);
+                int pos_y = std::floor(node.location().lat() * y_size_factor);
+                ensure_exists_in_world(pos_x, pos_y);
+                tiles.at(pos_x).at(pos_y).poi.push_back(structs::POI{
+                        node.id(),
+                        result.type,
+                        std::pair<double, double>{node.location().lon(), node.location().lat()},
+                        std::move(result.spawns)
+                });
             }
         }
 
         void way(const osmium::Way &way) {
             if (!way.ends_have_same_id() && !way.ends_have_same_location()) {
-                CheckResult result = get_details(way.tags(), this->config["streets"]);
+                structs::CheckResult result = get_details(way.tags(), this->config["streets"]);
                 if (!result.allowed) {
                     return;
                 }
@@ -195,18 +176,14 @@ namespace rustymon {
                     waypoints.append(make_point(node.location()));
                 }
                 entry["points"] = waypoints;
-                this->street_result_queue.push(entry);
             }
         }
 
         void area(const osmium::Area &area) {
             if (area.visible()) {
-                CheckResult result = get_details(area.tags(), this->config["areas"]);
+                structs::CheckResult result = get_details(area.tags(), this->config["areas"]);
                 if (!result.allowed) {
                     return;
-                }
-                if (result.spawns == Json::nullValue) {
-                    result.spawns = Json::Value(Json::arrayValue);
                 }
 
                 int outer_rings = 0;
@@ -246,8 +223,6 @@ namespace rustymon {
                 entry["type"] = result.type;
                 entry["oid"] = area.id();
                 entry["points"] = waypoints;
-                entry["spawns"] = result.spawns;
-                this->area_result_queue.push(entry);
             }
         }
     };
