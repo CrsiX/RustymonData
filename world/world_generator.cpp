@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
             return 2;
         }
 
-        osmium::Box bbox = rustymon::get_bbox(argv[4]);
+        osmium::Box bbox = rustymon::helpers::get_bbox(argv[4]);
         std::cout << "Using bounding box " << bbox << "." << std::endl;
         rustymon::export_to_file(argv[2], argv[3], bbox, config_file);
         return 0;

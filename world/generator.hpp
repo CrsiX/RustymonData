@@ -82,7 +82,7 @@ namespace rustymon {
                             (static_cast<double>(x_section) + 1) / x_size_factor,
                             (static_cast<double>(y_section) + 1) / y_size_factor
                     ),
-                    get_timestamp(),
+                    helpers::get_timestamp(),
                     FILE_VERSION,
                     std::vector<structs::POI>{},
                     std::vector<structs::Street>{},
@@ -94,7 +94,7 @@ namespace rustymon {
 
         WorldGenerator() {
             this->bbox = osmium::Box(-180, -90, 180, 90);
-            this->config = load_config(DEFAULT_CONFIG_FILENAME);
+            this->config = helpers::load_config(DEFAULT_CONFIG_FILENAME);
             check_valid_bbox();
             this->x_size_factor = this->config["size"]["x"].asInt();
             this->y_size_factor = this->config["size"]["y"].asInt();
@@ -102,7 +102,7 @@ namespace rustymon {
 
         explicit WorldGenerator(osmium::Box bbox) {
             this->bbox = bbox;
-            this->config = load_config(DEFAULT_CONFIG_FILENAME);
+            this->config = helpers::load_config(DEFAULT_CONFIG_FILENAME);
             check_valid_bbox();
             this->x_size_factor = this->config["size"]["x"].asInt();
             this->y_size_factor = this->config["size"]["y"].asInt();
@@ -110,7 +110,7 @@ namespace rustymon {
 
         explicit WorldGenerator(const std::string &config_filename) {
             this->bbox = osmium::Box(-180, -90, 180, 90);
-            this->config = load_config(DEFAULT_CONFIG_FILENAME);
+            this->config = helpers::load_config(DEFAULT_CONFIG_FILENAME);
             check_valid_bbox();
             this->x_size_factor = this->config["size"]["x"].asInt();
             this->y_size_factor = this->config["size"]["y"].asInt();
@@ -118,7 +118,7 @@ namespace rustymon {
 
         WorldGenerator(osmium::Box bbox, const std::string &config_filename) {
             this->bbox = bbox;
-            this->config = load_config(config_filename);
+            this->config = helpers::load_config(config_filename);
             check_valid_bbox();
             this->x_size_factor = this->config["size"]["x"].asInt();
             this->y_size_factor = this->config["size"]["y"].asInt();
@@ -133,7 +133,7 @@ namespace rustymon {
 
             Json::Value root;
             root["bbox"] = bbox_json;
-            root["timestamp"] = Json::Value::UInt64(static_cast<unsigned long>(get_timestamp()));
+            root["timestamp"] = Json::Value::UInt64(static_cast<unsigned long>(helpers::get_timestamp()));
             root["version"] = FILE_VERSION;
             root["poi"] = Json::Value(Json::arrayValue);
             root["streets"] = Json::Value(Json::arrayValue);
@@ -174,7 +174,7 @@ namespace rustymon {
                 entry["oid"] = Json::Value::UInt64(static_cast<unsigned long>(way.id()));
                 Json::Value waypoints = Json::Value(Json::arrayValue);
                 for (auto &node: way.nodes()) {
-                    waypoints.append(make_point(node.location()));
+                    waypoints.append(helpers::make_point(node.location()));
                 }
                 entry["points"] = waypoints;
             }
@@ -215,7 +215,7 @@ namespace rustymon {
                         for (const osmium::NodeRef &node: ring) {
                             if (last_location != node.location()) {
                                 last_location = node.location();
-                                waypoints.append(make_point(last_location));
+                                waypoints.append(helpers::make_point(last_location));
                             }
                         }
                     }
