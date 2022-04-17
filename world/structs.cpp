@@ -114,6 +114,12 @@ namespace rustymon {
             return stream;
         }
 
+        std::ostream& operator << (std::ostream &stream, const World &world) {
+            // TODO: Implement this method
+            stream << "Directly exporting a World is not implemented yet.";
+            return stream;
+        }
+
     }
 
 }

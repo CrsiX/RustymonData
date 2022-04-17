@@ -1,6 +1,9 @@
 #ifndef WORLD_GENERATOR_STRUCTS_HPP
 #define WORLD_GENERATOR_STRUCTS_HPP
 
+#include <map>
+#include <vector>
+
 namespace rustymon {
 
     namespace structs {
@@ -63,6 +66,10 @@ namespace rustymon {
         };
 
         std::ostream& operator << (std::ostream &stream, const Tile &tile);
+
+        using World = std::map<int, std::map<int, structs::Tile>>;
+
+        std::ostream& operator << (std::ostream &stream, const World &world);
 
     }
 
