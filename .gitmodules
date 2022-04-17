@@ -4,3 +4,6 @@
 [submodule "libcpr"]
 	path = world/libcpr
 	url = https://github.com/libcpr/cpr
+[submodule "world/libprotozero"]
+	path = world/libprotozero
+	url = https://github.com/mapbox/protozero
