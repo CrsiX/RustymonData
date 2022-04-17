@@ -4,6 +4,16 @@ namespace rustymon {
 
     namespace structs {
 
+        std::ostream &operator<<(std::ostream &stream, const BoundingBox &bbox) {
+            stream << "["
+                   << bbox.bottom_left.first << ","
+                   << bbox.bottom_left.second << ","
+                   << bbox.top_right.first << ","
+                   << bbox.top_right.second
+                   << "]";
+            return stream;
+        }
+
         std::ostream& operator << (std::ostream &stream, const POI &poi) {
             stream << "{"
                    << "\"type\":" << poi.type << ","

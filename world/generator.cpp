@@ -133,7 +133,7 @@ namespace rustymon {
     void WorldGenerator::ensure_exists_in_world(const int &x_section, const int &y_section) {
         tiles.insert(std::pair<int, std::map<int, structs::Tile>>{x_section, std::map<int, structs::Tile>()});
         tiles.at(x_section).insert(std::pair<int, structs::Tile>{y_section, structs::Tile{
-                osmium::Box(
+                structs::BoundingBox(
                         static_cast<double>(x_section) / x_size_factor,
                         static_cast<double>(y_section) / y_size_factor,
                         (static_cast<double>(x_section) + 1) / x_size_factor,

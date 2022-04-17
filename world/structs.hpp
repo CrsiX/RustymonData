@@ -5,6 +5,20 @@ namespace rustymon {
 
     namespace structs {
 
+        struct BoundingBox {
+            std::pair<double, double> bottom_left;
+            std::pair<double, double> top_right;
+
+            BoundingBox(double x1, double y1, double x2, double y2) {
+                this->bottom_left = std::pair<double, double>{x1, y1};
+                this->top_right = std::pair<double, double>{x2, y2};
+            }
+
+            friend std::ostream& operator << (std::ostream &stream, const BoundingBox &bbox);
+        };
+
+        std::ostream& operator << (std::ostream &stream, const BoundingBox &bbox);
+
         struct POI {
             const long oid;
             const int type;
@@ -38,7 +52,7 @@ namespace rustymon {
         std::ostream& operator << (std::ostream &stream, const Area &area);
 
         struct Tile {
-            const osmium::Box bbox;
+            const BoundingBox bbox;
             const long timestamp;
             const int version;
             std::vector<POI> poi;
