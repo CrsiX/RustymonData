@@ -1,3 +1,6 @@
+#ifndef WORLD_GENERATOR_STRUCTS_HPP
+#define WORLD_GENERATOR_STRUCTS_HPP
+
 namespace rustymon {
 
     namespace structs {
@@ -142,3 +145,5 @@ namespace rustymon {
     }
 
 }
+
+#endif //WORLD_GENERATOR_STRUCTS_HPP

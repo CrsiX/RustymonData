@@ -19,8 +19,8 @@
 #include <osmium/relations/relations_manager.hpp>
 
 #include "structs.hpp"
-#include "rustymon_constants.hpp"
-#include "rustymon_enums.hpp"
+#include "constants.hpp"
+#include "enums.hpp"
 #include "queue.hpp"
 #include "generator_helpers.hpp"
 #include "generator.hpp"
