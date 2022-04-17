@@ -78,6 +78,12 @@ See the `world` directory.
     // Number of worker threads for area processing
     "area": 4
   },
+  // Definition of the size of a single resulting tile
+  // (higher values lead to smaller map tiles)
+  "size": {
+    "x": 10000,
+    "y": 10000
+  },
   // Definition for Points Of Interest (POI)
   "poi": [
     {
