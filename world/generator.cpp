@@ -147,25 +147,6 @@ namespace rustymon {
         }});
     }
 
-    void WorldGenerator::way(const osmium::Way &way) {
-        if (!way.ends_have_same_id() && !way.ends_have_same_location()) {
-            std::vector<int> spawns;
-            int type = get_details(way.tags(), this->config["streets"], spawns);
-            if (type < 0) {
-                return;
-            }
-
-            Json::Value entry;
-            entry["type"] = type;
-            entry["oid"] = Json::Value::UInt64(static_cast<unsigned long>(way.id()));
-            Json::Value waypoints = Json::Value(Json::arrayValue);
-            for (auto &node: way.nodes()) {
-                waypoints.append(helpers::make_point(node.location()));
-            }
-            entry["points"] = waypoints;
-        }
-    }
-
     void WorldGenerator::node(const osmium::Node &node) {
         if (node.visible()) {
             std::vector<int> spawns;
@@ -183,6 +164,26 @@ namespace rustymon {
                     std::pair<double, double>{node.location().lon(), node.location().lat()},
                     std::move(spawns)
             });
+        }
+    }
+
+    void WorldGenerator::way(const osmium::Way &way) {
+        if (!way.ends_have_same_id() && !way.ends_have_same_location()) {
+            std::vector<int> spawns;
+            int type = get_details(way.tags(), this->config["streets"], spawns);
+            if (type < 0) {
+                return;
+            }
+
+            Json::Value entry;
+            entry["type"] = type;
+            entry["oid"] = Json::Value::UInt64(static_cast<unsigned long>(way.id()));
+            Json::Value waypoints = Json::Value(Json::arrayValue);
+            for (auto &node: way.nodes()) {
+                waypoints.append(helpers::make_point(node.location()));
+            }
+            entry["points"] = waypoints;
+
         }
     }
 

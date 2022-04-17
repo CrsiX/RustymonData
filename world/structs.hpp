@@ -3,6 +3,7 @@
 
 #include <map>
 #include <vector>
+#include <iostream>
 
 namespace rustymon {
 
@@ -16,6 +17,8 @@ namespace rustymon {
                 this->bottom_left = std::pair<double, double>{x1, y1};
                 this->top_right = std::pair<double, double>{x2, y2};
             }
+
+            bool valid() const;
 
             friend std::ostream& operator << (std::ostream &stream, const BoundingBox &bbox);
         };
@@ -69,7 +72,7 @@ namespace rustymon {
 
         using World = std::map<int, std::map<int, structs::Tile>>;
 
-        std::ostream& operator << (std::ostream &stream, const World &world);
+        std::ostream& stream(std::ostream &stream, const World &world);
 
     }
 

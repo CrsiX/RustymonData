@@ -79,10 +79,10 @@ namespace rustymon {
             stream << "{";
             if (tile.bbox.valid()) {
                 stream << "\"bbox\":["
-                       << tile.bbox.bottom_left().lon() << ","
-                       << tile.bbox.bottom_left().lat() << ","
-                       << tile.bbox.top_right().lon() << ","
-                       << tile.bbox.top_right().lat() << "],";
+                       << tile.bbox.bottom_left.first << ","
+                       << tile.bbox.bottom_left.second << ","
+                       << tile.bbox.top_right.first << ","
+                       << tile.bbox.top_right.second << "],";
             }
             stream << "\"timestamp\":" << tile.timestamp << ","
                    << "\"version\":" << tile.version << ","
@@ -114,7 +114,7 @@ namespace rustymon {
             return stream;
         }
 
-        std::ostream& operator << (std::ostream &stream, const World &world) {
+        std::ostream& stream(std::ostream &stream, const World &world) {
             // TODO: Implement this method
             stream << "Directly exporting a World is not implemented yet.";
             return stream;
