@@ -28,3 +28,8 @@ jobs:
       - name: Execute the resulting binary once
         run: |
           ./world/build/world_generator test
+      - name: Execute the binary without built libs
+        run: |
+          mv world/build/world_generator .
+          rm -rf world/build
+          ./world_generator test
