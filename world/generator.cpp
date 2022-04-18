@@ -173,14 +173,49 @@ namespace rustymon {
                 return;
             }
 
-            Json::Value entry;
-            entry["type"] = type;
-            entry["oid"] = Json::Value::UInt64(static_cast<unsigned long>(way.id()));
-            Json::Value waypoints = Json::Value(Json::arrayValue);
-            for (auto &node: way.nodes()) {
-                waypoints.append(helpers::make_point(node.location()));
+            const osmium::NodeRefList &nodes = way.nodes();
+            unsigned long way_length = nodes.size();
+            osmium::Box last_bbox;
+            std::vector<std::pair<double, double>> last_partial_street{};
+            for (int i = 0; i < way_length; i++) {
+                const osmium::NodeRef &node = nodes[i];
+                if (!node.location() || !node.location().valid()) {
+                    continue;
+                }
+                int pos_x = std::floor(node.location().lon() * x_size_factor);
+                int pos_y = std::floor(node.location().lat() * y_size_factor);
+                ensure_exists_in_world(pos_x, pos_y);
+
+                if (!last_bbox.valid()) {
+                    last_bbox = osmium::Box{
+                            static_cast<double>(pos_x) / x_size_factor,
+                            static_cast<double>(pos_y) / y_size_factor,
+                            (static_cast<double>(pos_x) + 1) / x_size_factor,
+                            (static_cast<double>(pos_y) + 1) / y_size_factor
+                    };
+                }
+
+                if (last_bbox.contains(node.location())) {
+                    // This node is in the same bounding box as the previous or the current
+                    // node, so we can just add it to the street in the current bounding box
+                    last_partial_street.emplace_back(node.lon(),node.lat());
+                } else {
+                    // This node is in another bounding box compared to the previous
+                    // node, so we "close" the current street and create a new one,
+                    // where "closing" implies:
+                    //   - the intersection of the line between the current node
+                    //     and the last node with the line of the bounding box forms
+                    //     a new location, which must be added to both partial streets
+                    //   - this node should always have a previous node, since the first
+                    //     node creates the bounding box by replacing the invalid old one
+                    //   - the completely constructed street should be added to the list
+                    //     of streets of the current tile before being replaced
+                    //   - the bounding box must be set to the correct values according
+                    //     to the new node (special care is required if the new node
+                    //     lies on the intersection of two or four bounding boxes!)
+                    // TODO: Implement the things mentioned above
+                }
             }
-            entry["points"] = waypoints;
 
         }
     }
