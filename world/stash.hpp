@@ -3,6 +3,8 @@
 #include "osmium/memory/item.hpp"
 #include "osmium/storage/item_stash.hpp"
 
+#ifndef RUSTYMON_STASH
+#define RUSTYMON_STASH
 namespace rustymon {
 
 /**
@@ -103,3 +105,4 @@ public:
 };
 
 } // namespace rustymon
+#endif
