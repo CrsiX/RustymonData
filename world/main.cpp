@@ -1,10 +1,7 @@
 #include <chrono>
 #include <string>
 #include <cstring>
-#include <fstream>
-#include <ostream>
 #include <iostream>
-
 
 #include "structs.hpp"
 #include "constants.hpp"
@@ -35,29 +32,21 @@ int main(int argc, char *argv[]) {
     } else if (argc >= 2 && strcmp(argv[1], "http") == 0) {
         const std::string usage = "Usage: " + std::string(argv[0]) + " http <InputFile> <PushResultURL> [<AuthorizationInfo>] [<ConfigFile>]";
         std::string config_file = rustymon::DEFAULT_CONFIG_FILENAME;
-        bool auth_info_provided = false;
         std::string auth_info;
         if (argc == 6) {
             auth_info = argv[4];
             config_file = argv[5];
-            auth_info_provided = true;
         } else if (argc == 5) {
             auth_info = argv[4];
-            auth_info_provided = true;
         } else if (argc != 4) {
             std::cerr << usage << std::endl;
             return 2;
         }
 
         std::cout << "HTTP mode is not implemented yet." << std::endl;
-        rustymon::structs::World world;
-        rustymon::WorldGenerator generator(config_file, world);
+        rustymon::WorldGenerator generator(config_file);
         rustymon::reader::read_from_file(generator, argv[2]);
-        if (auth_info_provided) {
-            rustymon::export_world_to_http(world, argv[3], auth_info);
-        } else {
-            rustymon::export_world_to_http(world, argv[3]);
-        }
+        rustymon::export_world_to_http(generator.get_world(), argv[3], auth_info);
         return 0;
     } else if (argc >= 2 && strcmp(argv[1], "dir") == 0) {
         // TODO: add directory support

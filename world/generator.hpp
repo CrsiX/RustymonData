@@ -83,34 +83,8 @@ namespace rustymon {
             this->y_size_factor = this->config["size"]["y"].asInt();
         }
 
-        WorldGenerator(const std::string &config_filename, structs::World &world) {
-            this->bbox = osmium::Box(-180, -90, 180, 90);
-            this->config = helpers::load_config(config_filename);
-            check_valid_bbox();
-            this->x_size_factor = this->config["size"]["x"].asInt();
-            this->y_size_factor = this->config["size"]["y"].asInt();
-            this->tiles = std::move(world);
-        }
-
         structs::World& get_world() {
             return this->tiles;
-        }
-
-        Json::Value get_json_data() {
-            Json::Value bbox_json = Json::Value(Json::arrayValue);
-            bbox_json[0] = this->bbox.bottom_left().lon();
-            bbox_json[1] = this->bbox.bottom_left().lat();
-            bbox_json[2] = this->bbox.top_right().lon();
-            bbox_json[3] = this->bbox.top_right().lat();
-
-            Json::Value root;
-            root["bbox"] = bbox_json;
-            root["timestamp"] = Json::Value::UInt64(static_cast<unsigned long>(helpers::get_timestamp()));
-            root["version"] = FILE_VERSION;
-            root["poi"] = Json::Value(Json::arrayValue);
-            root["streets"] = Json::Value(Json::arrayValue);
-            root["areas"] = Json::Value(Json::arrayValue);
-            return root;
         }
 
         void node(const osmium::Node &node);

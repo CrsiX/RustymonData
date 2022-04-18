@@ -5,6 +5,8 @@
 #include <fstream>
 #include <iostream>
 
+#include <cpr/api.h>
+
 #include "structs.hpp"
 
 namespace rustymon {
@@ -13,9 +15,7 @@ namespace rustymon {
 
     void export_world_to_files(const structs::World &world, const std::string &directory);
 
-    void export_world_to_http(const structs::World &world, const std::string &push_url);
-
-    void export_world_to_http(const structs::World &world, const std::string &push_url, const std::string &auth_info);
+    void export_world_to_http(const structs::World &world, const std::string &push_url, const std::string &auth_info = "");
 
 }
 
