@@ -1,3 +1,5 @@
+#include "rustymon_constants.hpp"
+
 namespace rustymon {
 
     template<typename T>
