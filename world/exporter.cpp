@@ -3,7 +3,9 @@
 namespace rustymon {
 
     void export_world_to_file(const structs::World &world, const std::string &filename) {
-        // TODO: Implement this function
+        std::ofstream output_file_stream(filename);
+        structs::stream(output_file_stream, world);
+        output_file_stream.close();
     }
 
     void export_world_to_files(const structs::World &world, const std::string &directory) {

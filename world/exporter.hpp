@@ -2,6 +2,7 @@
 #define WORLD_GENERATOR_EXPORTER_HPP
 
 #include <string>
+#include <fstream>
 #include <iostream>
 
 #include "structs.hpp"
