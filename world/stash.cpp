@@ -1,3 +1,6 @@
+#include <mutex>
+
+#include "osmium/memory/item.hpp"
 #include "osmium/storage/item_stash.hpp"
 
 namespace rustymon {
@@ -15,6 +18,9 @@ private:
   T &lookup(const handle_t h) const { return stash.get<T>(h); }
 
 public:
+  // Read only access to underlying ItemStash
+  const osmium::ItemStash &get_stash() { return stash; }
+
   // Iterator extending std's
   class iterator : public std::vector<handle_t>::iterator {
 
@@ -48,9 +54,51 @@ public:
 
   // Modifiers
   void push_back(const T &t) { handles.push_back(stash.add_item(t)); }
-  void pop_back(const T &t) {
+  void pop_back() {
     stash.remove_item(handles.back());
     handles.pop_back();
+  }
+  void clear() {
+    stash.clear();
+    handles.clear();
+  }
+};
+
+/**
+ * Synced pool of Stashes
+ *
+ * It optimises the following workflow, be recycling old Stahes and avoid
+ * unnecessary allocations:
+ * - populate new Stash with items in osmium::Handler
+ * - send it to a worker thread over some queue
+ * - delete it once processed
+ */
+class StashPool {
+private:
+  std::mutex lock;
+  std::vector<Stash<osmium::memory::Item> *> unused;
+
+public:
+  template <class T> Stash<T> *new_stash() {
+    Stash<T> *stash;
+    lock.lock();
+    if (unused.empty()) {
+      lock.unlock();
+      printf("Allocating new stash\n");
+      stash = new Stash<T>;
+    } else {
+      Stash<osmium::memory::Item> *i_stash = unused.back();
+      stash = reinterpret_cast<Stash<T> *>(i_stash);
+      unused.pop_back();
+      lock.unlock();
+    }
+    return stash;
+  }
+  template <class T> void delete_stash(Stash<T> *stash) {
+    stash->clear();
+    lock.lock();
+    unused.push_back(reinterpret_cast<Stash<osmium::memory::Item> *>(stash));
+    lock.unlock();
   }
 };
 
