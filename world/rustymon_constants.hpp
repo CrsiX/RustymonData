@@ -1,5 +1,7 @@
 #include <string>
 
+#ifndef RUSTYMON_CONSTANTS
+#define RUSTYMON_CONSTANTS
 namespace rustymon {
 
     static const int FILE_VERSION = 1;
@@ -13,4 +15,5 @@ namespace rustymon {
     static const int WAY_DEFAULT_WORKER_THREADS = 2;
     static const int AREA_DEFAULT_WORKER_THREADS = 4;
 
-}
+} // namespace rustymon
+#endif
