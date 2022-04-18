@@ -1,3 +1,6 @@
+#ifndef WORLD_GENERATOR_ENUMS_HPP
+#define WORLD_GENERATOR_ENUMS_HPP
+
 namespace rustymon {
 
     enum class SpawnType {
@@ -149,3 +152,5 @@ namespace rustymon {
     };
 
 }
+
+#endif //WORLD_GENERATOR_ENUMS_HPP

@@ -10,10 +10,6 @@ See the `world` directory.
 {
     // Bounding box used while creating the file
     "bbox": [1.4, -7.3, 1.6, -7.1],
-    // File creation timestamp
-    "timestamp": 1647391089,
-    // File format version
-    "version": 1,
     // List of streets in the snippet (only used for better map displays)
     "streets": [
         {
@@ -77,6 +73,12 @@ See the `world` directory.
     "way": 2,
     // Number of worker threads for area processing
     "area": 4
+  },
+  // Definition of the size of a single resulting tile
+  // (higher values lead to smaller map tiles)
+  "size": {
+    "x": 10000,
+    "y": 10000
   },
   // Definition for Points Of Interest (POI)
   "poi": [

@@ -1,0 +1,35 @@
+name: World Testing
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies and setup the environment
+        run: |
+          sudo apt install make cmake build-essential libboost-dev libbz2-dev libssl-dev libjsoncpp-dev libprotozero-dev -y
+          sudo ln -s /usr/include/jsoncpp/json /usr/include/json || echo "Failed to create symlink"
+      - name: Checkout submodules
+        run: |
+          git submodule init
+          git submodule update
+      - name: Build the app
+        run: |
+          cd world
+          mkdir build
+          cd build
+          cmake ..
+          make
+      - name: Execute the resulting binary once
+        run: |
+          ./world/build/world_generator test
+      - name: Execute the binary without built libs
+        run: |
+          mv world/build/world_generator .
+          rm -rf world/build
+          ./world_generator test
