@@ -99,7 +99,29 @@ namespace rustymon {
         using index_type = osmium::index::map::FlexMem<osmium::unsigned_object_id_type, osmium::Location>;
         using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
 
-        void read_from_file(WorldGenerator &data_handler, const std::string &in_file);
+        template <class H> void read_from_file(H &data_handler, const std::string &in_file) {
+            const osmium::io::File input_file{in_file};
+
+            osmium::area::Assembler::config_type assembler_config;
+            assembler_config.create_empty_areas = false;
+
+            osmium::area::MultipolygonManager <osmium::area::Assembler> mp_manager{assembler_config};
+
+            osmium::relations::read_relations(input_file, mp_manager);
+            index_type index;
+
+            location_handler_type location_handler{index};
+            location_handler.ignore_errors();
+
+            osmium::io::Reader reader{input_file, osmium::io::read_meta::no};
+
+            osmium::apply(reader, location_handler, data_handler,
+                          mp_manager.handler([&data_handler](const osmium::memory::Buffer &area_buffer) {
+                              osmium::apply(area_buffer, data_handler);
+                          }));
+
+            reader.close();
+        }
 
     }
 
