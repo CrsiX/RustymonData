@@ -52,6 +52,8 @@ some runtime libraries present on the target machine:
 - `libexpat.so.1`
 - `libbz2.so.1.0`
 - `libjsoncpp.so.24`
+- `libssl.so.1.1`
+- `libcrypto.so.1.1`
 - `libstdc++.so.6`
 - `libm.so.6`
 - `libgcc_s.so.1`
