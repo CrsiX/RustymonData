@@ -27,20 +27,7 @@ namespace rustymon {
             const int y;
         };
 
-        struct POI {
-            const int type;
-            const std::vector<int> spawns;
-            const std::map<std::string, std::vector<std::string>> required;
-            const std::map<std::string, std::vector<std::string>> forbidden;
-        };
-
-        struct Street {
-            const int type;
-            const std::map<std::string, std::vector<std::string>> required;
-            const std::map<std::string, std::vector<std::string>> forbidden;
-        };
-
-        struct Area {
+        struct ObjectProcessorEntry {
             const int type;
             const std::vector<int> spawns;
             const std::map<std::string, std::vector<std::string>> required;
@@ -50,9 +37,9 @@ namespace rustymon {
         struct Config {
             const Workers workers;
             const Size size;
-            const std::vector<POI> poi;
-            const std::vector<Street> streets;
-            const std::vector<Area> areas;
+            const std::vector<ObjectProcessorEntry> poi;
+            const std::vector<ObjectProcessorEntry> streets;
+            const std::vector<ObjectProcessorEntry> areas;
         };
 
         Config load_config_from_json(const Json::Value &data);

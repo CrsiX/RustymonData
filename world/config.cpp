@@ -31,7 +31,7 @@ namespace rustymon {
                 return map;
             };
 
-            std::vector<POI> poi;
+            std::vector<ObjectProcessorEntry> poi;
             try {
                 for (const Json::Value &v: data.get("poi", Json::arrayValue)) {
                     std::vector<int> spawns;
@@ -39,7 +39,7 @@ namespace rustymon {
                         spawns.push_back(s.asInt());
                     }
 
-                    poi.push_back(POI{
+                    poi.push_back(ObjectProcessorEntry{
                             .type = v["type"].asInt(),
                             .spawns = spawns,
                             .required = convert_object_to_map(v.get("required", Json::objectValue)),
@@ -51,11 +51,12 @@ namespace rustymon {
                 exit(1);
             }
 
-            std::vector<Street> streets;
+            std::vector<ObjectProcessorEntry> streets;
             try {
                 for (const Json::Value &v: data.get("streets", Json::arrayValue)) {
-                    streets.push_back(Street{
+                    streets.push_back(ObjectProcessorEntry{
                             .type = v["type"].asInt(),
+                            .spawns = {},
                             .required = convert_object_to_map(v.get("required", Json::objectValue)),
                             .forbidden = convert_object_to_map(v.get("forbidden", Json::objectValue))
                     });
@@ -65,7 +66,7 @@ namespace rustymon {
                 exit(1);
             }
 
-            std::vector<Area> areas;
+            std::vector<ObjectProcessorEntry> areas;
             try {
                 for (const Json::Value &v: data.get("areas", Json::arrayValue)) {
                     std::vector<int> spawns;
@@ -73,7 +74,7 @@ namespace rustymon {
                         spawns.push_back(s.asInt());
                     }
 
-                    areas.push_back(Area{
+                    areas.push_back(ObjectProcessorEntry{
                             .type = v["type"].asInt(),
                             .spawns = std::move(spawns),
                             .required = convert_object_to_map(v.get("required", Json::objectValue)),

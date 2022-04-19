@@ -21,12 +21,13 @@
 
 #include "constants.hpp"
 #include "structs.hpp"
+#include "config.hpp"
 
 namespace rustymon {
 
     namespace helpers {
 
-        long get_timestamp();
+        inline long get_timestamp();
 
         Json::Value load_config(const std::string& filename);
 
@@ -39,51 +40,51 @@ namespace rustymon {
     }
 
     class WorldGenerator : public osmium::handler::Handler {
-        int x_size_factor;
-        int y_size_factor;
-        osmium::Box bbox;
-        Json::Value config;
+        int x_size_factor = X_SIZE_FACTOR_DEFAULT;
+        int y_size_factor = Y_SIZE_FACTOR_DEFAULT;
 
+        osmium::Box bbox;
+        config::Config config;
         structs::World tiles;
 
-        static int get_details(const osmium::TagList& tags, const Json::Value& check_items, std::vector<int> &spawns);
+        static int get_details(const osmium::TagList &tags, const std::vector<config::ObjectProcessorEntry> &check_items, std::vector<int> &spawns);
 
-        void check_valid_bbox() {
+        inline void check_valid_bbox() {
             if (!this->bbox.valid()) {
                 std::cerr << "Invalid bounding box " << this->bbox << "!" << std::endl;
                 exit(1);
             }
         }
 
-        void ensure_exists_in_world(const int &x_section, const int &y_section);
+        inline void ensure_exists_in_world(const int &x_section, const int &y_section);
 
     public:
 
-        WorldGenerator() {
-            this->bbox = osmium::Box(-180, -90, 180, 90);
-            this->config = helpers::load_config(DEFAULT_CONFIG_FILENAME);
+        explicit WorldGenerator() :
+            config(config::load_config_from_file(DEFAULT_CONFIG_FILENAME)),
+            bbox(osmium::Box(-180, -90, 180, 90)) {
             check_valid_bbox();
-            this->x_size_factor = this->config["size"]["x"].asInt();
-            this->y_size_factor = this->config["size"]["y"].asInt();
+            x_size_factor = (config.size.x > 0) ? config.size.x : X_SIZE_FACTOR_DEFAULT;
+            y_size_factor = (config.size.y > 0) ? config.size.y : Y_SIZE_FACTOR_DEFAULT;
         }
 
-        explicit WorldGenerator(const std::string &config_filename) {
-            this->bbox = osmium::Box(-180, -90, 180, 90);
-            this->config = helpers::load_config(DEFAULT_CONFIG_FILENAME);
+        explicit WorldGenerator(const config::Config &config, const osmium::Box &bbox = osmium::Box(-180, -90, 180, 90)) :
+            config(config),
+            bbox(bbox) {
             check_valid_bbox();
-            this->x_size_factor = this->config["size"]["x"].asInt();
-            this->y_size_factor = this->config["size"]["y"].asInt();
+            x_size_factor = (config.size.x > 0) ? config.size.x : X_SIZE_FACTOR_DEFAULT;
+            y_size_factor = (config.size.y > 0) ? config.size.y : Y_SIZE_FACTOR_DEFAULT;
         }
 
-        WorldGenerator(osmium::Box bbox, const std::string &config_filename) {
-            this->bbox = bbox;
-            this->config = helpers::load_config(config_filename);
+        explicit WorldGenerator(const std::string &config_filename, const osmium::Box &bbox = osmium::Box(-180, -90, 180, 90)) :
+            config(config::load_config_from_file(config_filename)),
+            bbox(bbox) {
             check_valid_bbox();
-            this->x_size_factor = this->config["size"]["x"].asInt();
-            this->y_size_factor = this->config["size"]["y"].asInt();
+            x_size_factor = (config.size.x > 0) ? config.size.x : X_SIZE_FACTOR_DEFAULT;
+            y_size_factor = (config.size.y > 0) ? config.size.y : Y_SIZE_FACTOR_DEFAULT;
         }
 
-        structs::World& get_world() {
+        inline structs::World& get_world() {
             return this->tiles;
         }
 
