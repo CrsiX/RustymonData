@@ -83,24 +83,21 @@ private:
 public:
   template <class T> Stash<T> *new_stash() {
     Stash<T> *stash;
-    lock.lock();
+    std::unique_lock<std::mutex> u_lock(lock);
     if (unused.empty()) {
-      lock.unlock();
-      printf("Allocating new stash\n");
+      u_lock.unlock(); // Unlock early since heap allocation doesn't need to block
       stash = new Stash<T>;
     } else {
       Stash<osmium::memory::Item> *i_stash = unused.back();
       stash = reinterpret_cast<Stash<T> *>(i_stash);
       unused.pop_back();
-      lock.unlock();
     }
     return stash;
   }
   template <class T> void delete_stash(Stash<T> *stash) {
     stash->clear();
-    lock.lock();
+    std::lock_guard<std::mutex> lock_guard(lock);
     unused.push_back(reinterpret_cast<Stash<osmium::memory::Item> *>(stash));
-    lock.unlock();
   }
 };
 
