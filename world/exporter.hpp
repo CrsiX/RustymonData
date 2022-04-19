@@ -9,6 +9,7 @@
 
 #include <cpr/api.h>
 
+#include "constants.hpp"
 #include "structs.hpp"
 
 namespace rustymon {
@@ -23,7 +24,7 @@ namespace rustymon {
 
     void export_world_to_files(const structs::World &world, const std::string &directory, std::ostream &logger = std::cout);
 
-    void export_world_to_http(const structs::World &world, const std::string &push_url, const std::string &auth_info = "", std::ostream &logger = std::cout);
+    void export_world_to_http(const structs::World &world, const std::string &push_url, const std::string &auth_info = "", std::ostream &logger = std::cout, int worker_threads = UPLOAD_DEFAULT_WORKER_THREADS);
 
 }
 

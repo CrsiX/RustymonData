@@ -45,7 +45,6 @@ namespace rustymon {
 
     }
 
-
     void export_world_to_file(const structs::World &world, const std::string &filename, std::ostream &logger) {
         std::ofstream output_file_stream(filename);
         structs::stream(output_file_stream, world);
@@ -56,18 +55,17 @@ namespace rustymon {
         // TODO: Implement this function
     }
 
-    void export_world_to_http(const structs::World &world, const std::string &push_url, const std::string &auth_info, std::ostream &logger) {
+    void export_world_to_http(const structs::World &world, const std::string &push_url, const std::string &auth_info, std::ostream &logger, const int worker_threads) {
         int error_count;
         int total_requests;
-        const int total_workers = 2 * static_cast<int>(std::thread::hardware_concurrency());
 
         std::mutex result_mutex;
         std::vector<std::thread> thread_pool;
-        thread_pool.reserve(total_workers);
-        for (int i = 0; i < total_workers; i++) {
-            thread_pool.emplace_back([&world, &push_url, &auth_info, &logger, total_workers, i, &result_mutex, &error_count, &total_requests](){
-                logger << "Starting upload worker thread " << i << " of " << total_workers << " with ID " << std::this_thread::get_id() << std::endl;
-                std::pair<int, int> result = detail::export_world_to_http_worker(world, push_url, auth_info, logger, total_workers, i);
+        thread_pool.reserve(worker_threads);
+        for (int i = 0; i < worker_threads; i++) {
+            thread_pool.emplace_back([&world, &push_url, &auth_info, &logger, worker_threads, i, &result_mutex, &error_count, &total_requests](){
+                logger << "Starting upload worker thread " << i << " of " << worker_threads << " with ID " << std::this_thread::get_id() << std::endl;
+                std::pair<int, int> result = detail::export_world_to_http_worker(world, push_url, auth_info, logger, worker_threads, i);
                 {
                     std::unique_lock<std::mutex> lock(result_mutex);
                     total_requests += result.first;
