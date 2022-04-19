@@ -2,6 +2,50 @@
 
 namespace rustymon {
 
+    namespace detail {
+
+        std::pair<int, int> export_world_to_http_worker(const structs::World &world, const std::string &push_url, const std::string &auth_info, std::ostream &logger, const int worker_count, const int my_modulo) {
+            cpr::Header headers{{"Content-Type", "application/json"}};
+            if (!auth_info.empty()) {
+                headers.insert({"Authorization", auth_info});
+            }
+
+            cpr::Session session;
+            session.SetUrl(cpr::Url{push_url});
+
+            int errors = 0;
+            int total_requests = 0;
+            for (auto const& x : world) {
+                if (x.first % worker_count != my_modulo) {
+                    continue;
+                }
+
+                for (auto const &y: x.second) {
+                    std::stringstream body;
+                    body << y.second;
+                    std::stringstream position_header;
+
+                    position_header << x.first << "," << y.first;
+                    headers.erase("X-Tile-Position");
+                    headers.insert({"X-Tile-Position", position_header.str()});
+                    session.SetBody(cpr::Body{body.str()});
+                    session.SetHeader(headers);
+
+                    cpr::Response r = session.Post();
+                    total_requests++;
+                    if (r.status_code != 200) {
+                        errors++;
+                        logger << "Received status code " << r.status_code << " while uploading Tile " << x.first << "," << y.first << std::endl;
+                    }
+                }
+            }
+
+            return std::pair<int, int>{total_requests, errors};
+        }
+
+    }
+
+
     void export_world_to_file(const structs::World &world, const std::string &filename, std::ostream &logger) {
         std::ofstream output_file_stream(filename);
         structs::stream(output_file_stream, world);
@@ -13,53 +57,31 @@ namespace rustymon {
     }
 
     void export_world_to_http(const structs::World &world, const std::string &push_url, const std::string &auth_info, std::ostream &logger) {
-        cpr::Header headers{{"Content-Type", "application/json"}};
-        if (!auth_info.empty()) {
-            headers.insert({"Authorization", auth_info});
-        }
+        int error_count;
+        int total_requests;
+        const int total_workers = 2 * static_cast<int>(std::thread::hardware_concurrency());
 
-        int counter = 0;
-        for (auto const& x : world) {
-            for (auto const &y: x.second) {
-                counter++;
-            }
-        }
-        logger << "Counted " << counter << " objects to upload..." << std::endl;
-
-        int errors = 0;
-        for (auto const& x : world) {
-            /**
-             * An important note to make here is that arguments passed to an asynchronous call are copied.
-             * Under the hood, an asynchronous call through the library’s API is done with std::async.
-             * By default, for memory safety, all arguments are copied (or moved if temporary) because there’s
-             * no syntax level guarantee that the arguments will live beyond the scope of the request.
-             */
-            std::vector<std::future<cpr::Response>> responses{};
-
-            for (auto const &y: x.second) {
-                std::stringstream body;
-                body << y.second;
-                std::stringstream position_header;
-
-                position_header << x.first << "," << y.first;
-                headers.erase("X-Tile-Position");
-                headers.insert({"X-Tile-Position", position_header.str()});
-                responses.emplace_back(cpr::PostAsync(cpr::Url{push_url}, cpr::Body{body.str()}, headers));
-            }
-
-            int completed_parts = 0;
-            for (std::future<cpr::Response>& future: responses) {
-                cpr::Response r = future.get();
-                if (r.status_code != 200) {
-                    errors++;
-                    logger << "Received status code " << r.status_code << " while uploading a tile with x=" << x.first << std::endl;
+        std::mutex result_mutex;
+        std::vector<std::thread> thread_pool;
+        thread_pool.reserve(total_workers);
+        for (int i = 0; i < total_workers; i++) {
+            thread_pool.emplace_back([&world, &push_url, &auth_info, &logger, total_workers, i, &result_mutex, &error_count, &total_requests](){
+                logger << "Starting upload worker thread " << i << " of " << total_workers << " with ID " << std::this_thread::get_id() << std::endl;
+                std::pair<int, int> result = detail::export_world_to_http_worker(world, push_url, auth_info, logger, total_workers, i);
+                {
+                    std::unique_lock<std::mutex> lock(result_mutex);
+                    total_requests += result.first;
+                    error_count += result.second;
                 }
-                completed_parts++;
-            }
-            logger << "Uploaded " << completed_parts << " parts for x=" << x.first << std::endl;
+            });
         }
 
-        logger << "Completed uploading of " << counter << " objects with " << errors << " errors." << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        for (std::thread &t: thread_pool) {
+            logger << "Joining thread ID " << t.get_id() << "..." << std::endl;
+            t.join();
+        }
+        logger << "Completed uploading of " << total_requests << " objects with " << error_count << " errors." << std::endl;
     }
 
 }
