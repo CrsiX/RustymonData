@@ -1,3 +1,6 @@
+#ifndef WORLD_GENERATOR_QUEUE_HPP
+#define WORLD_GENERATOR_QUEUE_HPP
+
 namespace rustymon {
 
     template<typename T>
@@ -5,14 +8,14 @@ namespace rustymon {
 
         static const std::size_t max_size = QUEUE_MAX_SIZE;
 
-        mutable std::mutex mutex;
-        std::queue<T> queue;
+        mutable std::mutex mutex{};
+        std::queue<T> queue{};
 
         /// Used to signal consumers when data is available in the queue.
-        std::condition_variable data_available;
+        std::condition_variable data_available{};
 
         /// Used to signal producers when queue is not full.
-        std::condition_variable space_available;
+        std::condition_variable space_available{};
 
     public:
 
@@ -74,3 +77,5 @@ namespace rustymon {
     };
 
 }
+
+#endif //WORLD_GENERATOR_QUEUE_HPP
