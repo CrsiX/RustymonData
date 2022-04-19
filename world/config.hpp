@@ -4,21 +4,27 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <fstream>
+#include <iostream>
+
+#include <json/json.h>
+
+#include "constants.hpp"
 
 namespace rustymon {
 
     namespace config {
 
         struct Workers {
-            int node;
-            int way;
-            int area;
-            int upload;
+            const int node;
+            const int way;
+            const int area;
+            const int upload;
         };
 
         struct Size {
-            int x;
-            int y;
+            const int x;
+            const int y;
         };
 
         struct POI {
@@ -42,12 +48,16 @@ namespace rustymon {
         };
 
         struct Config {
-            Workers workers;
-            Size size;
-            std::vector<POI> poi;
-            std::vector<Street> streets;
-            std::vector<Area> areas;
+            const Workers workers;
+            const Size size;
+            const std::vector<POI> poi;
+            const std::vector<Street> streets;
+            const std::vector<Area> areas;
         };
+
+        Config load_config_from_json(const Json::Value &data);
+
+        Config load_config_from_file(const std::string &filename);
 
     }
 
