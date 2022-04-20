@@ -4,7 +4,7 @@ namespace rustymon {
 
     namespace helpers {
 
-        long get_timestamp() {
+        inline long get_timestamp() {
             return std::chrono::duration_cast<std::chrono::seconds>(
                     std::chrono::system_clock::now().time_since_epoch()).count();
         }
@@ -72,25 +72,21 @@ namespace rustymon {
 
     }
 
-    int WorldGenerator::get_details(const osmium::TagList& tags, const Json::Value& check_items, std::vector<int> &spawns) {
-        for (const Json::Value &item: check_items) {
-            bool allowed = true;
-            int type = item["type"].asInt();
-
-            const Json::Value &required = item["required"];
-            const Json::Value &forbidden = item["forbidden"];
-            if (required.empty() && forbidden.empty()) {
+    int WorldGenerator::get_details(const osmium::TagList &tags, const std::vector<config::ObjectProcessorEntry> &check_items, std::vector<int> &spawns) {
+        for (const config::ObjectProcessorEntry &item: check_items) {
+            if (item.required.empty() && item.forbidden.empty()) {
                 continue;
             }
 
-            for (const std::string& forbidden_key: forbidden.getMemberNames()) {
-                if (tags.has_key(forbidden_key.c_str())) {
-                    if (forbidden[forbidden_key.c_str()].empty()) {
+            bool allowed = true;
+            for (const std::pair<const std::string, std::vector<std::string>> &forbidden_item: item.forbidden) {
+                if (tags.has_key(forbidden_item.first.c_str())) {
+                    if (forbidden_item.second.empty()) {
                         allowed = false;
                         break;
                     }
-                    for (const Json::Value& forbidden_value: forbidden[forbidden_key.c_str()]) {
-                        if (forbidden_value.asString() == tags.get_value_by_key(forbidden_key.c_str())) {
+                    for (const std::string& forbidden_value: forbidden_item.second) {
+                        if (forbidden_value == tags.get_value_by_key(forbidden_item.first.c_str())) {
                             allowed = false;
                         }
                     }
@@ -101,36 +97,32 @@ namespace rustymon {
                 continue;
             }
 
-            for (const std::string& required_key: required.getMemberNames()) {
-                if (!tags.has_key(required_key.c_str())) {
+            for (const std::pair<const std::string, std::vector<std::string>> &required_item: item.required) {
+                if (!tags.has_key(required_item.first.c_str())) {
                     allowed = false;
                     break;
                 }
-                const Json::Value &required_values = required[required_key.c_str()];
-                bool found = required_values.empty();
-                for (const Json::Value& required_value: required_values) {
-                    if (strcmp(tags.get_value_by_key(required_key.c_str()), required_value.asCString()) == 0) {
+                bool found = required_item.second.empty();
+                for (const std::string &required_value: required_item.second) {
+                    if (required_value == tags.get_value_by_key(required_item.first.c_str())) {
                         found = true;
                     }
                 }
                 allowed = allowed && found;
-                if (!found) {
-                    allowed = false;
-                }
             }
 
             if (allowed) {
-                for (const Json::Value &s : item["spawns"]) {
-                    spawns.push_back(s.asInt());
+                for (const int &s: item.spawns) {
+                    spawns.push_back(s);
                 }
-                return type;
+                return item.type;
             }
         }
 
         return -1;
     }
 
-    void WorldGenerator::ensure_exists_in_world(const int &x_section, const int &y_section) {
+    inline void WorldGenerator::ensure_exists_in_world(const int &x_section, const int &y_section) {
         tiles.insert(std::pair<int, std::map<int, structs::Tile>>{x_section, std::map<int, structs::Tile>()});
         tiles.at(x_section).insert(std::pair<int, structs::Tile>{y_section, structs::Tile{
                 structs::BoundingBox(
@@ -148,7 +140,7 @@ namespace rustymon {
     void WorldGenerator::node(const osmium::Node &node) {
         if (node.visible()) {
             std::vector<int> spawns;
-            int type = get_details(node.tags(), this->config["poi"], spawns);
+            int type = get_details(node.tags(), config.poi, spawns);
             if (type < 0) {
                 return;
             }
@@ -168,19 +160,54 @@ namespace rustymon {
     void WorldGenerator::way(const osmium::Way &way) {
         if (!way.ends_have_same_id() && !way.ends_have_same_location()) {
             std::vector<int> spawns;
-            int type = get_details(way.tags(), this->config["streets"], spawns);
+            int type = get_details(way.tags(), config.streets, spawns);
             if (type < 0) {
                 return;
             }
 
-            Json::Value entry;
-            entry["type"] = type;
-            entry["oid"] = Json::Value::UInt64(static_cast<unsigned long>(way.id()));
-            Json::Value waypoints = Json::Value(Json::arrayValue);
-            for (auto &node: way.nodes()) {
-                waypoints.append(helpers::make_point(node.location()));
+            const osmium::NodeRefList &nodes = way.nodes();
+            unsigned long way_length = nodes.size();
+            osmium::Box last_bbox;
+            std::vector<std::pair<double, double>> last_partial_street{};
+            for (int i = 0; i < way_length; i++) {
+                const osmium::NodeRef &node = nodes[i];
+                if (!node.location() || !node.location().valid()) {
+                    continue;
+                }
+                int pos_x = std::floor(node.location().lon() * x_size_factor);
+                int pos_y = std::floor(node.location().lat() * y_size_factor);
+                ensure_exists_in_world(pos_x, pos_y);
+
+                if (!last_bbox.valid()) {
+                    last_bbox = osmium::Box{
+                            static_cast<double>(pos_x) / x_size_factor,
+                            static_cast<double>(pos_y) / y_size_factor,
+                            (static_cast<double>(pos_x) + 1) / x_size_factor,
+                            (static_cast<double>(pos_y) + 1) / y_size_factor
+                    };
+                }
+
+                if (last_bbox.contains(node.location())) {
+                    // This node is in the same bounding box as the previous or the current
+                    // node, so we can just add it to the street in the current bounding box
+                    last_partial_street.emplace_back(node.lon(), node.lat());
+                } else {
+                    // This node is in another bounding box compared to the previous
+                    // node, so we "close" the current street and create a new one,
+                    // where "closing" implies:
+                    //   - the intersection of the line between the current node
+                    //     and the last node with the line of the bounding box forms
+                    //     a new location, which must be added to both partial streets
+                    //   - this node should always have a previous node, since the first
+                    //     node creates the bounding box by replacing the invalid old one
+                    //   - the completely constructed street should be added to the list
+                    //     of streets of the current tile before being replaced
+                    //   - the bounding box must be set to the correct values according
+                    //     to the new node (special care is required if the new node
+                    //     lies on the intersection of two or four bounding boxes!)
+                    // TODO: Implement the things mentioned above
+                }
             }
-            entry["points"] = waypoints;
 
         }
     }
@@ -188,7 +215,7 @@ namespace rustymon {
     void WorldGenerator::area(const osmium::Area &area) {
         if (area.visible()) {
             std::vector<int> spawns;
-            int type = get_details(area.tags(), this->config["areas"], spawns);
+            int type = get_details(area.tags(), config.areas, spawns);
             if (type < 0) {
                 return;
             }
@@ -220,7 +247,7 @@ namespace rustymon {
                     for (const osmium::NodeRef &node: ring) {
                         if (last_location != node.location()) {
                             last_location = node.location();
-                            waypoints.append(helpers::make_point(last_location));
+                            //waypoints.append(helpers::make_point(last_location));
                         }
                     }
                 }

@@ -1,4 +1,13 @@
-# Rustymon Data Repository
+```text
+ ___              _                                  ___         _
+|  _ \           ( )_                               (  _ \      ( )_
+| (_) )_   _  ___|  _)_   _  ___ ___    _    ___    | | ) |  _ _|  _)  _ _
+|    /( ) ( )  __) | ( ) ( )  _   _  \/ _ \/  _  \  | | | )/ _  ) |  / _  )
+| |\ \| (_) |__  \ |_| (_) | ( ) ( ) | (_) ) ( ) |  | |_) | (_| | |_( (_| |
+(_) (_)\___/(____/\__)\__  |_) (_) (_)\___/(_) (_)  (____/ \__ _)\__)\__ _)
+                     ( )_| |
+                      \___/
+```
 
 ## World generator using OSM data
 
@@ -72,7 +81,9 @@ See the `world` directory.
     // Number of worker threads for way processing
     "way": 2,
     // Number of worker threads for area processing
-    "area": 4
+    "area": 4,
+    // Number of worker threads for uploading the final data via HTTP
+    "upload": 4
   },
   // Definition of the size of a single resulting tile
   // (higher values lead to smaller map tiles)

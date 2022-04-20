@@ -14,12 +14,18 @@ DEFAULT_PORT = 8080
 
 
 class WebHandler(http.server.BaseHTTPRequestHandler):
+    requests = 0
+    total_bytes = 0
+
     def do_POST(self):
-        remaining = int(self.headers.get("Content-Length", 0))
+        total = remaining = int(self.headers.get("Content-Length", 1024**2))
         while remaining > 0:
             line = self.rfile.readline(remaining)
             remaining -= len(line)
             print(line)
+
+        type(self).requests += 1
+        type(self).total_bytes += total
 
         self.send_response(200)
         self.end_headers()
@@ -41,7 +47,7 @@ def main(argv: list = None):
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
-        pass
+        print(f"Requests: {WebHandler.requests}\nBody: {WebHandler.total_bytes / 1024:.2f} kB")
 
 
 if __name__ == "__main__":
