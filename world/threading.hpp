@@ -1,15 +1,16 @@
+#ifndef WORLD_GENERATOR_THREADING_HPP
+#define WORLD_GENERATOR_THREADING_HPP
+
 #include <thread>
 
-#include "osmium/handler.hpp"
-#include "osmium/osm/area.hpp"
-#include "osmium/osm/node.hpp"
-#include "osmium/osm/way.hpp"
+#include <osmium/handler.hpp>
+#include <osmium/osm/area.hpp>
+#include <osmium/osm/node.hpp>
+#include <osmium/osm/way.hpp>
 
 #include "queue.hpp"
 #include "stash.hpp"
 
-#ifndef RUSTYMON_THREADING
-#define RUSTYMON_THREADING
 namespace rustymon {
 
 /**
@@ -28,11 +29,11 @@ private:
    *
    * It stores pointers to a queue to get items from and to a pool to reuse the
    * items' container.
-   * It also stores the function pointer to call with items and an arbitary
-   * pointer for arbitary parameters.
+   * It also stores the function pointer to call with items and an arbitrary
+   * pointer for arbitrary parameters.
    *
    * Since items are send inside a container which is passed as pointer over the
-   * queue, a null pointer is used to signal aa stop.
+   * queue, a null pointer is used to signal a stop.
    */
   template <class T> struct Worker {
     ThreadSafeQueue<Stash<T> *> *stash_queue = 0;
@@ -96,4 +97,5 @@ public:
 };
 
 } // namespace rustymon
-#endif
+
+#endif //WORLD_GENERATOR_THREADING_HPP

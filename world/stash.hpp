@@ -1,10 +1,11 @@
+#ifndef WORLD_GENERATOR_STASH_HPP
+#define WORLD_GENERATOR_STASH_HPP
+
 #include <mutex>
 
-#include "osmium/memory/item.hpp"
-#include "osmium/storage/item_stash.hpp"
+#include <osmium/memory/item.hpp>
+#include <osmium/storage/item_stash.hpp>
 
-#ifndef RUSTYMON_STASH
-#define RUSTYMON_STASH
 namespace rustymon {
 
 /**
@@ -69,7 +70,7 @@ public:
 /**
  * Synced pool of Stashes
  *
- * It optimises the following workflow, be recycling old Stahes and avoid
+ * It optimises the following workflow, be recycling old Stashes and avoid
  * unnecessary allocations:
  * - populate new Stash with items in osmium::Handler
  * - send it to a worker thread over some queue
@@ -102,4 +103,5 @@ public:
 };
 
 } // namespace rustymon
-#endif
+
+#endif //WORLD_GENERATOR_STASH_HPP
