@@ -137,18 +137,37 @@ namespace rustymon {
         }});
     }
 
-    void WorldGenerator::node(const osmium::Node &node) {
+    void WorldGenerator::spawn_workers() {
+        fprintf(stderr, "Spawning generator worker threads (%d for nodes, %d for ways, %d for areas)...\n",
+                config.workers.node, config.workers.way, config.workers.area);
+        for (int i = 0; i < config.workers.node; i++) {
+            spawn(reinterpret_cast<void (*)(const osmium::Node &, void *)>(handle_node), this);
+        }
+        for (int i = 0; i < config.workers.way; i++) {
+            spawn(reinterpret_cast<void (*)(const osmium::Way &, void *)>(handle_way), this);
+        }
+        for (int i = 0; i < config.workers.area; i++) {
+            spawn(reinterpret_cast<void (*)(const osmium::Area &, void *)>(handle_area), this);
+        }
+    }
+
+    void WorldGenerator::handle_node(const osmium::Node &node, WorldGenerator *wg) {
+        if (wg == nullptr) {
+            return;
+        }
+
         if (node.visible()) {
             std::vector<int> spawns;
-            int type = get_details(node.tags(), config.poi, spawns);
+            int type = get_details(node.tags(), wg->config.poi, spawns);
             if (type < 0) {
                 return;
             }
 
-            int pos_x = std::floor(node.location().lon() * x_size_factor);
-            int pos_y = std::floor(node.location().lat() * y_size_factor);
-            ensure_exists_in_world(pos_x, pos_y);
-            tiles.at(pos_x).at(pos_y).poi.push_back(structs::POI{
+            int pos_x = std::floor(node.location().lon() * wg->x_size_factor);
+            int pos_y = std::floor(node.location().lat() * wg->y_size_factor);
+            std::lock_guard<std::mutex> guard(wg->tiles_lock);
+            wg->ensure_exists_in_world(pos_x, pos_y);
+            wg->tiles.at(pos_x).at(pos_y).poi.push_back(structs::POI{
                     node.id(),
                     type,
                     std::pair<double, double>{node.location().lon(), node.location().lat()},
@@ -157,10 +176,14 @@ namespace rustymon {
         }
     }
 
-    void WorldGenerator::way(const osmium::Way &way) {
+    void WorldGenerator::handle_way(const osmium::Way &way, WorldGenerator *wg) {
+        if (wg == nullptr) {
+            return;
+        }
+
         if (!way.ends_have_same_id() && !way.ends_have_same_location()) {
             std::vector<int> spawns;
-            int type = get_details(way.tags(), config.streets, spawns);
+            int type = get_details(way.tags(), wg->config.streets, spawns);
             if (type < 0) {
                 return;
             }
@@ -174,16 +197,19 @@ namespace rustymon {
                 if (!node.location() || !node.location().valid()) {
                     continue;
                 }
-                int pos_x = std::floor(node.location().lon() * x_size_factor);
-                int pos_y = std::floor(node.location().lat() * y_size_factor);
-                ensure_exists_in_world(pos_x, pos_y);
+                int pos_x = std::floor(node.location().lon() * wg->x_size_factor);
+                int pos_y = std::floor(node.location().lat() * wg->y_size_factor);
+                {
+                    std::lock_guard<std::mutex> guard(wg->tiles_lock);
+                    wg->ensure_exists_in_world(pos_x, pos_y);
+                }
 
                 if (!last_bbox.valid()) {
                     last_bbox = osmium::Box{
-                            static_cast<double>(pos_x) / x_size_factor,
-                            static_cast<double>(pos_y) / y_size_factor,
-                            (static_cast<double>(pos_x) + 1) / x_size_factor,
-                            (static_cast<double>(pos_y) + 1) / y_size_factor
+                            static_cast<double>(pos_x) / wg->x_size_factor,
+                            static_cast<double>(pos_y) / wg->y_size_factor,
+                            (static_cast<double>(pos_x) + 1) / wg->x_size_factor,
+                            (static_cast<double>(pos_y) + 1) / wg->y_size_factor
                     };
                 }
 
@@ -206,16 +232,20 @@ namespace rustymon {
                     //     to the new node (special care is required if the new node
                     //     lies on the intersection of two or four bounding boxes!)
                     // TODO: Implement the things mentioned above
+                    // TODO: Also remember to enforce thread-safety using the tiles_lock
                 }
             }
-
         }
     }
 
-    void WorldGenerator::area(const osmium::Area &area) {
+    void WorldGenerator::handle_area(const osmium::Area &area, WorldGenerator *wg) {
+        if (wg == nullptr) {
+            return;
+        }
+
         if (area.visible()) {
             std::vector<int> spawns;
-            int type = get_details(area.tags(), config.areas, spawns);
+            int type = get_details(area.tags(), wg->config.areas, spawns);
             if (type < 0) {
                 return;
             }
@@ -247,7 +277,6 @@ namespace rustymon {
                     for (const osmium::NodeRef &node: ring) {
                         if (last_location != node.location()) {
                             last_location = node.location();
-                            //waypoints.append(helpers::make_point(last_location));
                         }
                     }
                 }

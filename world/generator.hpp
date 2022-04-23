@@ -22,6 +22,7 @@
 #include "constants.hpp"
 #include "structs.hpp"
 #include "config.hpp"
+#include "threading.hpp"
 
 namespace rustymon {
 
@@ -39,15 +40,22 @@ namespace rustymon {
 
     }
 
-    class WorldGenerator : public osmium::handler::Handler {
+    class WorldGenerator : public ThreadedHandler {
         int x_size_factor = X_SIZE_FACTOR_DEFAULT;
         int y_size_factor = Y_SIZE_FACTOR_DEFAULT;
 
         osmium::Box bbox;
         config::Config config;
         structs::World tiles;
+        std::mutex tiles_lock;
 
         static int get_details(const osmium::TagList &tags, const std::vector<config::ObjectProcessorEntry> &check_items, std::vector<int> &spawns);
+
+        static void handle_node(const osmium::Node &Node, WorldGenerator* wg);
+
+        static void handle_way(const osmium::Way &way, WorldGenerator* wg);
+
+        static void handle_area(const osmium::Area &area, WorldGenerator* wg);
 
         inline void check_valid_bbox() {
             if (!this->bbox.valid()) {
@@ -58,6 +66,8 @@ namespace rustymon {
 
         inline void ensure_exists_in_world(const int &x_section, const int &y_section);
 
+        void spawn_workers();
+
     public:
 
         explicit WorldGenerator() :
@@ -66,6 +76,7 @@ namespace rustymon {
             check_valid_bbox();
             x_size_factor = (config.size.x > 0) ? config.size.x : X_SIZE_FACTOR_DEFAULT;
             y_size_factor = (config.size.y > 0) ? config.size.y : Y_SIZE_FACTOR_DEFAULT;
+            spawn_workers();
         }
 
         explicit WorldGenerator(const config::Config &config, const osmium::Box &bbox = osmium::Box(-180, -90, 180, 90)) :
@@ -74,6 +85,7 @@ namespace rustymon {
             check_valid_bbox();
             x_size_factor = (config.size.x > 0) ? config.size.x : X_SIZE_FACTOR_DEFAULT;
             y_size_factor = (config.size.y > 0) ? config.size.y : Y_SIZE_FACTOR_DEFAULT;
+            spawn_workers();
         }
 
         explicit WorldGenerator(const std::string &config_filename, const osmium::Box &bbox = osmium::Box(-180, -90, 180, 90)) :
@@ -82,17 +94,12 @@ namespace rustymon {
             check_valid_bbox();
             x_size_factor = (config.size.x > 0) ? config.size.x : X_SIZE_FACTOR_DEFAULT;
             y_size_factor = (config.size.y > 0) ? config.size.y : Y_SIZE_FACTOR_DEFAULT;
+            spawn_workers();
         }
 
         inline structs::World& get_world() {
             return this->tiles;
         }
-
-        void node(const osmium::Node &node);
-
-        void way(const osmium::Way &way);
-
-        void area(const osmium::Area &area);
     };
 
     namespace reader {

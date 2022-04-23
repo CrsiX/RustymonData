@@ -71,6 +71,9 @@ int main(int argc, char *argv[]) {
         const rustymon::config::Config config = rustymon::config::load_config_from_file(config_file);
         rustymon::WorldGenerator generator(config, bbox);
         rustymon::reader::read_from_file(generator, argv[2]);
+        generator.stop();
+
+        generator.join();
         rustymon::export_world_to_file(generator.get_world(), argv[3]);
         return 0;
     } else {
