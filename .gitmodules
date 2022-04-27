@@ -2,8 +2,8 @@
 	path = libosmium
 	url = https://github.com/osmcode/libosmium.git
 [submodule "libcpr"]
-	path = world/libcpr
+	path = src/libcpr
 	url = https://github.com/libcpr/cpr
 [submodule "world/libprotozero"]
-	path = world/libprotozero
+	path = src/libprotozero
 	url = https://github.com/mapbox/protozero

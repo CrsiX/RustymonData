@@ -11,7 +11,9 @@
 
 ## World generator using OSM data
 
-See the `world` directory.
+Generate a rustymon world or parts thereof based on OpenStreetMap input data.
+
+See the `src` directory.
 
 ### Output file format
 
@@ -169,7 +171,3 @@ See the `world` directory.
   ]
 }
 ```
-
-## Mob spawning
-
-See the `spawning` directory.
